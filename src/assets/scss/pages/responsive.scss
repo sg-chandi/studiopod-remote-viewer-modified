@@ -1,0 +1,129 @@
+// upto 2000px
+
+@media (min-width: 2100px) {
+  .name_page .left_part .lower_part .Container .content .buttonSec button {
+    height: 80px;
+  }
+
+  .PodInstruction .UseBxSec .UseBx .BxContent img,
+  .lightZone_sec .UseBxSec .UseBx .BxContent img {
+    max-width: 120px;
+  }
+
+  .PodInstruction,
+  .lightZone_sec {
+    .PodInstructionHead {
+      height: 120px;
+
+      button {
+        width: 240px !important;
+        height: 80px;
+      }
+    }
+
+    .footerSec {
+      .footLft {
+        height: 100px;
+      }
+
+      .srchBtn {
+        border-radius: 30px;
+
+        button {
+          height: 100px;
+          border-radius: 30px;
+          font-size: 1.25rem;
+          font-weight: 400;
+
+          .css-1gnd1fd-MuiButton-endIcon > *:nth-of-type(1) {
+            font-size: 46px;
+          }
+        }
+      }
+    }
+
+    .UseBxSec .UseBx {
+      height: calc(100dvh - 100px - 240px);
+    }
+  }
+
+  .PodInstruction .UseBxSec .UseBx .BxContent p,
+  .lightZone_sec .UseBxSec .UseBx .BxContent p {
+    font-size: 2.25rem;
+  }
+
+  .PodInstruction .UseBxPose .img_part .pose_img,
+  .lightZone_sec .UseBxPose .img_part .pose_img {
+    height: calc(100vh - 500px);
+  }
+
+  .lookup_sec,
+  .look_up_loader {
+    height: calc(100dvh - 175px);
+
+    .lower_part {
+      height: 400px;
+    }
+  }
+
+  .lookup_count_sec .countDown_section {
+    height: calc(100dvh - 320px);
+  }
+
+  .photoReview_section {
+    height: calc(100dvh - 300px);
+  }
+
+  .retakePhoto_sec .down_part {
+    height: 250px;
+  }
+
+  .PodInstruction .UseBxExit,
+  .lightZone_sec .UseBxExit {
+    height: calc(100vh - 300px);
+
+    .contPart .btnSec .yesBtn,
+    .contPart .btnSec .noBtn {
+      height: 90px;
+      width: 190px;
+    }
+  }
+  .contPart .btnSec .yesBtn,
+  .contPart .btnSec .noBtn {
+    height: 90px;
+    width: 190px;
+  }
+
+  .selectedImage_preview_sec .radius {
+    height: 50px;
+    width: 50px;
+  }
+
+  .photoReview_section .right_part .photos_row .photo .radius {
+    height: 40px;
+    width: 40px;
+  }
+
+  .retakeConfirmation_sec .button_grp {
+    button.primary,
+    button.secondary {
+      height: 90px;
+      width: 190px;
+      border-radius: 30px;
+    }
+  }
+
+  .exit_session_page .right_part {
+    width: 750px;
+  }
+
+  .look_up_loader img.user_image {
+    height: calc(100vh - 180px);
+  }
+
+  .sessionDialogue .MuiDialogContent-root .logo_absolute img.union {
+    width: 72px;
+    top: 24px;
+    right: 27px;
+  }
+}

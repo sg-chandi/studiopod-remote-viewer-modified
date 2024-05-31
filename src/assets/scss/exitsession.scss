@@ -1,0 +1,53 @@
+.exit_session_dialogue {
+    .MuiDialogContent-root {
+        background-color: $bg-color-black;
+        padding: 10px 20px;
+    }  
+    .PodInstructionHead ,.footerSec  {
+        margin: 10px 0 !important;
+    } 
+    .btnSec button {
+        height: 75px !important;
+        border-radius: 22px;
+    }
+    .footerSec {
+        .MuiPaper-root {
+            padding: 8px 0;
+        }
+    }
+}
+
+.UseBxExit {
+    display: flex;
+    height: calc(100vh - 275px);
+    justify-content: inherit;
+    width: 100%;
+    animation: fadeIn 2s;
+
+    @media (max-width: 1200px) {
+      height: calc(100vh - 220px);
+    }
+
+    @media (max-width: 1050px) {
+      height: calc(100vh - 200px);
+    }
+
+    .imgPart {
+      width: 30%;
+      overflow: hidden;
+
+      .exitImg {
+        width: 100%;
+        height: 100%;
+        @include BorderRadiusDynamic(35px, 100%);
+      }
+
+      @media (max-width: 1200px) {
+        width: 400px;
+      }
+
+      @media (max-width: 1050px) {
+        width: 280px;
+      }
+    }
+  }

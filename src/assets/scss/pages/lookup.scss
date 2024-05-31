@@ -1,0 +1,322 @@
+.lookup_sec {
+  height: calc(100dvh - 125px);
+  margin: 0px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+
+  .upper_part {
+    flex: 1;
+    display: flex;
+    gap: 5px;
+
+    .left_part {
+      max-width: 40%;
+      flex: 0 0 40%;
+      background-color: $bg-white;
+      border-radius: 20px;
+
+      .body {
+        padding: 30px;
+        display: flex;
+        justify-content: space-between;
+        flex-direction: column;
+        height: calc(100% - 60px);
+
+        img {
+          width: 65px;
+
+          @media (min-width: 1439px) {
+            width: 4.1rem;
+          }
+        }
+
+        .content {
+          h3 {
+            font-size: 3.25rem;
+            font-weight: 400;
+            color: $text-black;
+            margin: 0;
+          }
+
+          p {
+            color: $deep-gray;
+            font-size: 1rem;
+            margin: 0;
+          }
+        }
+      }
+    }
+
+    .right_part {
+      max-width: 60%;
+      flex: 0 0 calc(60% - 5px);
+      background-color: $secondary-bg-color;
+      background-size: cover;
+      border-radius: 20px;
+      position: relative;
+
+      .union {
+        width: 55px;
+        position: absolute;
+        top: 16px;
+        right: 24px;
+        z-index: 2;
+
+        @media (min-width: 1699px) {
+          width: 70px;
+        }
+      }
+      .curve {
+        width: 130px;
+        position: absolute;
+        top: -1px;
+        right: -1px;
+
+        @media (min-width: 1699px) {
+          width: 160px;
+        }
+      }
+
+      .content {
+        height: calc(100% - 60px);
+        display: flex;
+        align-content: flex-end;
+        align-items: flex-end;
+        justify-content: space-between;
+        padding: 30px;
+
+        .tag {
+          padding: 5px 12px;
+          color: $deep-gray;
+          border: 1px solid $deep-gray-border;
+          @include BorderRadiusDynamic(20px, 100%)
+        }
+
+        .photo_count {
+          font-size: 4.25rem;
+          font-weight: 500;
+          color: $deep-gray;
+          opacity: 0.9;
+          margin: 0;
+        }
+      }
+    }
+  }
+
+  .lower_part {
+    height: 150px;
+    background: $theme-bg-color;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 20px;
+    cursor: pointer;
+
+    @media (min-width: 1439px) {
+      height: 250px;
+    }
+
+    h2 {
+      font-size: 2.85rem;
+      font-weight: 400;
+      line-height: 1;
+    }
+  }
+}
+
+.lookup_count_sec {
+  .arrow-up-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 70px;
+    height: 70px;
+    width: 100%;
+
+    h3 {
+      color: $text-white;
+      font-size: 2rem;
+      font-weight: 500;
+      margin: 0;
+      text-transform: uppercase;
+    }
+    img {
+      width: 30px;
+      -webkit-animation: mover 1s infinite alternate;
+      animation: mover 1s infinite alternate;
+    }
+  }
+
+  .countDown_section {
+    display: flex;
+    width: calc(100% - 20px);
+    gap: 5px;
+    height: calc(100dvh - 230px);
+    margin: 10px;
+
+    @media (max-width: 1200px) {
+      height: calc(100dvh - 240px);
+    }
+
+    @media (max-width: 1050px) {
+      height: calc(100dvh - 220px);
+    }
+
+    .left_part {
+      width: 35%;
+      background: $bg-white;
+      overflow: hidden;
+      @include BorderRadiusDynamic(30px, 100%);
+      padding: 50px;
+      transition: all 0.3s ease-in-out;
+
+      h3 {
+        font-size: 3rem;
+        font-weight: 400;
+        margin: 0;
+        padding-bottom: 10px;
+      }
+
+      p {
+        font-size: 1rem;
+        font-weight: 400;
+        margin: 0;
+        color: $deep-gray;
+      }
+    }
+    .right_part {
+      width: 65%;
+      background: $secondary-bg-color;
+      @include BorderRadiusDynamic(30px, 100%);
+      display: grid;
+      place-items: center;
+      position: relative;
+      transition: all 0.3s ease-in-out;
+
+      img.union {
+        width: 50px;
+        position: absolute;
+        top: 22px;
+        right: 30px;
+      }
+      img.curve {
+        width: 125px;
+        position: absolute;
+        top: -1px;
+        right: -1px;
+      }
+
+      .count_radius {
+        display: grid;
+        place-items: center;
+        width: 17.5rem;
+        height: 17.5rem;
+        border-radius: 50%;
+        border: 8px solid $deep-gray-border;
+
+        h2 {
+          color: $deep-gray-border;
+          margin: 0;
+          font-size: 8rem;
+          font-weight: 400;
+        }
+      }
+
+      .lookup_overlay {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background-color: #00000027;
+        @include BorderRadiusDynamic(25px, 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        gap: 30px;
+        animation: fadeIn 2s;
+
+        img {
+          filter: invert(1);
+          width: 40px;
+          position: relative;
+          z-index: 100;
+          -webkit-animation: mover 1s infinite alternate;
+          animation: mover 1s infinite alternate;
+        }
+
+        h2 {
+          margin: 0;
+          font-size: 3.5rem;
+          font-weight: 400;
+        }
+      }
+    }
+  }
+}
+
+.look_up_loader {
+  height: calc(100dvh - 125px);
+  background-color: $secondary-black-color;
+  @include BorderRadiusDynamic(30px, 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0px 10px;
+  animation: fadeIn 1.5s;
+
+  @media (max-width: 1200px) {
+    height: calc(100dvh - 130px);
+  }
+
+  @media (max-width: 1050px) {
+    height: calc(100dvh - 120px);
+  }
+
+  img.union {
+    width: 25vw;
+  }
+  img.user_image {
+    height: calc(100vh - 125px);
+    border-radius: 30px;
+
+    @media (max-width: 1200px) {
+      height: calc(100dvh - 130px);
+    }
+  }
+}
+
+@-webkit-keyframes mover {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-10px);
+  }
+}
+@keyframes mover {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}

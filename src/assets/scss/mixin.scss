@@ -1,0 +1,70 @@
+@mixin Dialogue($Width, $InnerPadding) {
+  .MuiDialog-paper.MuiDialog-paperScrollPaper {
+    width: $Width;
+    max-width: $Width;
+    // padding: $InnerPadding;
+    background: $bg-light-gray;
+    border-radius: 25px;
+    position: relative;
+    box-shadow: none;
+
+    .MuiDialogTitle-root {
+      padding: 0;
+      margin-bottom: 10px;
+    }
+
+    .MuiDialogContent-root {
+      padding: 0;
+    }
+    .MuiDialogActions-root {
+      padding: 0;
+      margin-top: 10px;
+    }
+  }
+
+  .css-yiavyu-MuiBackdrop-root-MuiDialog-backdrop {
+    background-color: rgb(0 0 0 / 64%);
+  }
+}
+
+@mixin PrimaryButton($borderRadius) {
+  background: $theme-bg-color;
+  border-color: $theme-bg-color;
+  color: $text-white;
+  border-radius: $borderRadius;
+  height: 60px;
+  box-shadow: none !important;
+  opacity: 1;
+
+  @media(min-width: 1599px) {
+    // height: 85px;
+    height: 65px;
+  }
+
+  &:hover {
+    background: darken($color: $theme-bg-color, $amount: 5);
+    box-shadow: none !important;
+  }
+}
+
+@mixin SecondaryButton($borderRadius) {
+  background: $secondary-black-color;
+  border-color: $secondary-black-color;
+  color: lighten($color: $text-black, $amount: 60);
+  border-radius: $borderRadius;
+  opacity: 1;
+  height: 60px;
+
+  @media(min-width: 1599px) {
+    // height: 85px;
+    height: 65px;
+  }
+  &:hover {
+    background: darken($color: $secondary-black-color, $amount: 5);
+  }
+}
+
+@mixin BorderRadiusDynamic($radiusValue, $width) {
+  border-radius: max(0px, min($radiusValue, (100% - $width + 1px) * 9999)) /
+    $radiusValue;
+}

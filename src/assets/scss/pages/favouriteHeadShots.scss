@@ -1,0 +1,160 @@
+.retouchedDialog {
+    @include Dialogue(85vw, 0px);
+
+    .MuiDialog-paper.MuiDialog-paperScrollPaper {
+        background: transparent;
+        overflow: hidden;
+        .css-ypiqx9-MuiDialogContent-root{
+            overflow: hidden !important;
+        }
+    }
+    .retouch_view_modal{
+        overflow: hidden !important;
+    }
+    .retouch_row {
+        display: grid;
+        grid-template-columns: 0.8fr 1.2fr;
+        gap: 5px;
+        height: 80vh;
+        @media (max-width: 1600px) {
+            height:70vh;
+        }
+        @media (max-width: 1439px) {
+            height:65vh;
+          }
+        .curve_section {
+            background-image: url(../../images/Subtract-retouch.png);
+            background-size: cover;
+            background-position:top right;
+            border-radius: 40px;
+            overflow: hidden;
+            padding: 30px;
+            position: relative;
+            @media (max-width: 1200px) {
+                background-position: bottom right;
+              }
+            h2 {
+                color: $text-black;
+                font-size: 2.5rem;
+                font-weight: 400;
+                line-height: 63px;
+                margin-bottom: 0.5rem;
+                @media (max-width: 1600px) {
+                    font-size: 3rem;
+                    line-height: 55px;
+                }
+                @media (max-width: 1326px) {
+                    font-size: 2.3rem;
+                    line-height: 45px;
+                }
+                @media (max-width: 1200px) {
+                    font-size: 2rem;
+                    line-height: 40px;
+                    margin-top: 2.2rem;
+                }
+            }
+
+            h3 {
+                color: $deep-gray-text;
+                font-size: 24px;
+                font-weight: 400;
+                line-height: 1.2;
+                margin-bottom: 0.5rem;
+            }
+
+            .cross_btn {
+                position: absolute;
+                top: 30px;
+                right: 30px;
+                cursor: pointer;
+                @media (max-width: 1600px) {
+                    top: 20px;
+                    right: 20px;
+                }
+                @media (max-width: 1439px) {
+                    top: 15px;
+                }
+                svg{
+                    width: 80px;
+                    height: 80px;
+                    @media (max-width: 1439px) {
+                        width: 70px;
+                    }
+                }
+            }
+        }
+
+        .photo_section {
+            background-color: $secondary-bg-color;
+            border-radius: 40px;
+            padding: 20px;
+
+            .photos_row {
+                display: grid;
+                grid-template-columns: repeat(5, minmax(0, 1fr));
+                grid-template-rows: repeat(3, minmax(0, 1fr));
+                grid-gap: 0.625rem;
+                height: 60vh;
+                overflow: auto;
+          
+                .photo {
+                  background-color: #fff;
+                  @include BorderRadiusDynamic(12px, 100%);
+                  overflow: hidden;
+                  position: relative;
+                  cursor: pointer;
+          
+                  @media(max-width: 1050px) {
+                    min-height: 115px;
+                  }
+          
+                  .radius {
+                    position: absolute;
+                    top: 10px;
+                    left: 10px;
+                    border: 1px solid $deep-gray-border;
+                    color: $deep-gray;
+                    height: 25px;
+                    width: 25px;
+                    display: grid;
+                    place-items: center;
+                    border-radius: 50%;
+                    font-size: 0.825rem;
+          
+                    @media (max-width: 1024px) {
+                      height: 16px;
+                      width: 16px;
+                      font-size: 0.525rem;
+                    }
+                  }
+          
+                  // .image_part {
+                  //   height: 200px;
+                  // }
+          
+                  .heartIcons {
+                    position: absolute;
+                    right: 4px;
+                    bottom: 4px;
+                    color: $deep-gray;
+                    cursor: pointer;
+                    padding: 5px;
+                    line-height: .8;
+                    &.active{
+                      border-radius: 6px;
+                      background-color: rgba(0, 0, 0, 0.5);
+                    }
+                  }
+          
+                  img {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                    object-position: top;
+                  }
+                }
+              }
+        }
+
+    }
+}
