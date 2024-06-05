@@ -86,12 +86,14 @@ export default function Remote() {
         ActionToPerform: "Stage0",
       });
 
+      localStorage.clear()
+
       hubConnection
-        .invoke("SendCommandToWebClient", hubCommendRef.current)
+        .invoke("SendCommandToWinClient", {
+          ActionToPerform: "IsBoothOffline",
+        })
         .catch((err) => console.error("ERROR" + err));
-      console.log("web", {
-        ...hubCommendRef.current,
-      });
+
       hubConnection
         .invoke("SendCommandToWinClient", {
           ...hubCommendRef.current,
@@ -103,11 +105,19 @@ export default function Remote() {
         ActionToPerform: "Stage1",
       });
     });
-    hubConnection.on("send", (data) => {
-      console.log("hubData", data);
-    });
+
+
     hubConnection.on("onWebCommandReceived", (result) => {
-      // console.log(result.actionToPerform);
+      console.log(result);
+      const UserId = boothInfo.auth.boothUserId;
+      if (result.actionToPerform === "IsBoothOffline" && !result.isOffline) {
+        hubConnection
+          .invoke("SendCommandToWinClient", {
+            ActionToPerform: "GetBoothByUserId"
+          })
+          .catch((err) => console.error("ERROR" + err));
+      }
+
       if (result.actionToPerform === "onError") {
         console.log("Command Error", result);
         Dispatch(
@@ -276,6 +286,7 @@ export default function Remote() {
         .invoke("SendCommandToWinClient", _command)
         .catch((err) => console.error("ERROR" + err));
     },
+
     [hubConnection, hubConnected]
   );
 
@@ -527,7 +538,7 @@ export default function Remote() {
     console.log("saveSyncData", command);
     validateSession(sessionInfo.inviteInfo.sessionId)
       .then((res) => {
-        console.log("update1")
+        console.log("update1");
         return updateSession(conducted_Session);
       })
       .then(() => {
@@ -539,7 +550,6 @@ export default function Remote() {
           LogType: "success",
         });
         Dispatch(setSessionInfo({ sessionSubmitting: true }));
-
       })
       .catch((er) => {
         console.log("err", er);

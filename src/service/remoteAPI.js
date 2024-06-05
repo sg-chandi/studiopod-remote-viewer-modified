@@ -40,6 +40,7 @@ export const checkAvailableClients = (name, email) => {
 };
 
 export const corporateDefaultOrder = (payload) => {
+  console.log(payload)
   return HTTPRequest({ Method: "post", Url: DEFAULT_ORDER, Data: payload });
 };
 export const validateSession = (sessionId) => {
@@ -67,6 +68,7 @@ export const getBoothZoneSetting = (boothId) => {
 };
 
 export const dailyOrderCreate = (payload) => {
+  console.log(payload)
   return HTTPRequest({ Method: "post", Url: DAILY_ORDER_CREATE, Data: payload });
 };
 

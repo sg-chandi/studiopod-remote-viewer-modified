@@ -23,8 +23,10 @@ import { curveSvg, unionSvg } from "assets/images/svg";
 import LoginImage from "assets/images/login_image.png";
 import { setLoading } from "state/reducers/boothInfo";
 import { clearLocalStorageData } from "helper/func";
+import * as signalR from "@microsoft/signalr";
+import { SIGNAL_R_CONNECTION } from "service/endpoints";
 
-const BoothLogin = ({ sendLog,handleBoothLoginCommand }) => {
+const BoothLogin = ({ sendLog, handleBoothLoginCommand }) => {
   const boothAuth = useSelector((state) => state.booth.auth);
   const [emailFocused, setEmailFocused] = useState(false);
   const [emailSubmitted, setEmailSubmitted] = useState(false);
@@ -35,8 +37,26 @@ const BoothLogin = ({ sendLog,handleBoothLoginCommand }) => {
   const [autoLoginTried, setAutoLoginTried] = useState(false);
   const [loading, setLocalLoading] = useState(false);
   const [loggedTryToken, setLoggedTryToken] = useState("idle"); //success failed
-
+  const [hubConnection, setHubConnection] = useState(null);
   const Dispatch = useDispatch();
+  // const hubConnectedInfo = useSelector(state=>state.hub);
+
+  // console.log("hub",hubConnectedInfo)
+
+  useEffect(() => {
+    let connectSignalR = () => {
+      const hub_Connection = new signalR.HubConnectionBuilder()
+        .withUrl(SIGNAL_R_CONNECTION)
+        .build();
+      setHubConnection(hub_Connection);
+    };
+    connectSignalR();
+    // return () => {
+    //   // connectSignalR = null;
+    // };
+  }, []);
+
+
   const handleEmailChange = useCallback((value) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     setEmail(value);
@@ -84,10 +104,32 @@ const BoothLogin = ({ sendLog,handleBoothLoginCommand }) => {
       setLocalLoading(true);
       if ((!_email || !_password) && (!email || !password)) return;
 
+      if (hubConnection._connectionState==="Disconnected") {
+
+        hubConnection.start().then(() => {
+          console.log("Hub connected");
+        });
+        alert("hum connected")
+        // hubConnection.start().then(() => {
+          hubConnection
+          .invoke("SendCommandToWinClient", {
+            ActionToPerform: "GetOfflineAuthenticate",
+          })
+          .catch((err) => console.error("ERROR" + err));
+        }
+
       authenticate(_email || email, _password || password)
         .then((res) => {
           if (res.data?.id_token) {
             try {
+              //send command to hub for authentication in offline mode
+              hubConnection
+                .invoke("SendCommandToWinClient", {
+                  ActionToPerform: "OfflineAuthenticate",
+                  UserName: _email,
+                  Password: _password,
+                })
+                .catch((err) => console.error("ERROR" + err));
               const decodedToken = jwtDecode(res.data.id_token);
               const boothUserId = decodedToken.unique_name;
               // const userEmail = decodedToken.sub;
@@ -156,6 +198,7 @@ const BoothLogin = ({ sendLog,handleBoothLoginCommand }) => {
           setLocalLoading(false);
           setAutoLogin(false);
         });
+      // });
     },
     [email, password, Dispatch, clearLogin, sendLog]
   );
@@ -189,11 +232,11 @@ const BoothLogin = ({ sendLog,handleBoothLoginCommand }) => {
             : check_booth_mode?.data?.isClub
             ? "club"
             : "normal";
-            const prevMode =   localStorage.getItem("BoothMode")
-            if(prevMode && prevMode !==mode){
-              clearLocalStorageData()
-              window.location = "/"
-            }
+          const prevMode = localStorage.getItem("BoothMode");
+          if (prevMode && prevMode !== mode) {
+            clearLocalStorageData();
+            window.location = "/";
+          }
           localStorage.setItem("BoothMode", mode);
           // CHANGE PAGE
           const viewerStepInfoJson = localStorage.getItem("viewerStepInfo");
@@ -204,13 +247,13 @@ const BoothLogin = ({ sendLog,handleBoothLoginCommand }) => {
           setAutoLogin(false);
           Dispatch(setLoading(false));
           console.log("-------------------");
-          handleBoothLoginCommand(boothDetailsData.id,boothDetailsData.name)
+          handleBoothLoginCommand(boothDetailsData.id, boothDetailsData.name);
           sendLog({
             LogMsg: `Booth data fetched.  BoothId: ${boothDetailsData.id} `,
             LogType: "success",
             BoothMode: mode,
-            BoothId:boothDetailsData.id,
-            BoothName:boothDetailsData.name
+            BoothId: boothDetailsData.id,
+            BoothName: boothDetailsData.name,
           });
         } catch (error) {
           console.log("er", error);
@@ -227,7 +270,13 @@ const BoothLogin = ({ sendLog,handleBoothLoginCommand }) => {
     };
     fetchData();
     return () => (fetchData = null);
-  }, [boothAuth.boothUserId, Dispatch, clearLogin, sendLog,handleBoothLoginCommand]);
+  }, [
+    boothAuth.boothUserId,
+    Dispatch,
+    clearLogin,
+    sendLog,
+    handleBoothLoginCommand,
+  ]);
 
   //auto login
   useEffect(() => {
