@@ -1,4 +1,11 @@
-import { useContext, createContext,useState,useRef, useEffect, useCallback } from "react";
+import {
+  useContext,
+  createContext,
+  useState,
+  useRef,
+  useEffect,
+  useCallback,
+} from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { toast } from "react-toastify";
 import {
@@ -56,6 +63,8 @@ const SessionContext = ({
   const photosInfo = useSelector((state) => state.photosInfo);
   const modalInfo = useSelector((state) => state.modalInfo);
   const [hubConnection, setHubConnection] = useState(null);
+  const offlineMode = useSelector((state) => state.offline.offlineMode);
+  const offlineModeData = useSelector((state) => state.offline);
   const hubCommendRef = useRef({
     ActionToPerform: "viewer",
     VoucherCode: "",
@@ -83,50 +92,130 @@ const SessionContext = ({
 
   // after booth login booth zone setting fetch
 
-
-
   useEffect(() => {
     if (boothLightZone.zoneFetched || !boothInfo.boothId) return;
-    getBoothZoneSetting()
-      .then((res) => {
-        if (res.status !== 204) {
-          if (res.data) {
-            // console.log("Booth res.data Set");
-            const removeUnused = [];
-            res.data?.zone.forEach((r) => {
-              const validData = [
-                "Default",
-                "Shadow1",
-                "Shadow2",
-                "Full",
-                "Mid Shadow",
-              ];
-              if (validData.includes(r.key)) {
-                removeUnused.push(r);
-              }
-            });
-            Dispatch(
-              setLightZone({ zone: removeUnused, isActive: res.data.isActive })
-            );
-          }
+    if (offlineMode == "offline") {
+      const removeUnused = [];
+      offlineModeData.zonesettingResult.zone.forEach((r) => {
+        const validData = [
+          "Default",
+          "Shadow1",
+          "Shadow2",
+          "Full",
+          "Mid Shadow",
+        ];
+        if (validData.includes(r.key)) {
+          removeUnused.push(r);
         }
-        Dispatch(setZoneFetched(true));
-        sendLog({
-          LogMsg: `Getting booth zone setting. BoothId: ${localStorage.getItem(
-            "BoothId"
-          )} `,
-          LogType: "success",
-        });
-      })
-      .catch((er) => {
-        sendLog({
-          LogMsg: `Getting booth zone setting failed. BoothId: ${localStorage.getItem(
-            "BoothId"
-          )} `,
-          LogType: "error",
-        });
       });
-  }, [boothLightZone.zoneFetched, boothInfo.boothId, Dispatch, sendLog]);
+      Dispatch(
+        setLightZone({
+          zone: removeUnused,
+          isActive: offlineModeData.zonesettingResult.isActive,
+        })
+      );
+      Dispatch(setZoneFetched(true));
+      sendLog({
+        LogMsg: `Getting booth zone setting. BoothId: ${localStorage.getItem(
+          "BoothId"
+        )} `,
+        LogType: "success",
+      });
+    } else if (offlineMode == "online") {
+      getBoothZoneSetting()
+        .then((res) => {
+          if (res.status !== 204) {
+            if (res.data) {
+              // console.log("Booth res.data Set");
+              const removeUnused = [];
+              res.data?.zone.forEach((r) => {
+                const validData = [
+                  "Default",
+                  "Shadow1",
+                  "Shadow2",
+                  "Full",
+                  "Mid Shadow",
+                ];
+                if (validData.includes(r.key)) {
+                  removeUnused.push(r);
+                }
+              });
+              Dispatch(
+                setLightZone({
+                  zone: removeUnused,
+                  isActive: res.data.isActive,
+                })
+              );
+            }
+          }
+          Dispatch(setZoneFetched(true));
+          sendLog({
+            LogMsg: `Getting booth zone setting. BoothId: ${localStorage.getItem(
+              "BoothId"
+            )} `,
+            LogType: "success",
+          });
+        })
+        .catch((er) => {
+          sendLog({
+            LogMsg: `Getting booth zone setting failed. BoothId: ${localStorage.getItem(
+              "BoothId"
+            )} `,
+            LogType: "error",
+          });
+        });
+    }
+  }, [
+    boothLightZone.zoneFetched,
+    boothInfo.boothId,
+    Dispatch,
+    sendLog,
+    offlineMode,
+  ]);
+
+  // useEffect(() => {
+  //   if (boothLightZone.zoneFetched || !boothInfo.boothId) return;
+  //   if(off)
+  //   getBoothZoneSetting()
+  //     .then((res) => {
+  //       if (res.status !== 204) {
+  //         if (res.data) {
+  //           // console.log("Booth res.data Set");
+  //           const removeUnused = [];
+  //           res.data?.zone.forEach((r) => {
+  //             const validData = [
+  //               "Default",
+  //               "Shadow1",
+  //               "Shadow2",
+  //               "Full",
+  //               "Mid Shadow",
+  //             ];
+  //             if (validData.includes(r.key)) {
+  //               removeUnused.push(r);
+  //             }
+  //           });
+  //           Dispatch(
+  //             setLightZone({ zone: removeUnused, isActive: res.data.isActive })
+  //           );
+  //         }
+  //       }
+  //       Dispatch(setZoneFetched(true));
+  //       sendLog({
+  //         LogMsg: `Getting booth zone setting. BoothId: ${localStorage.getItem(
+  //           "BoothId"
+  //         )} `,
+  //         LogType: "success",
+  //       });
+  //     })
+  //     .catch((er) => {
+  //       sendLog({
+  //         LogMsg: `Getting booth zone setting failed. BoothId: ${localStorage.getItem(
+  //           "BoothId"
+  //         )} `,
+  //         LogType: "error",
+  //       });
+  //     });
+  // }, [boothLightZone.zoneFetched, boothInfo.boothId, Dispatch, sendLog]);
   //fetch client light setting
   useEffect(() => {
     if (!sessionInfo.inviteInfo.corporateClientId) return;
@@ -326,7 +415,7 @@ const SessionContext = ({
     validateSession(sessionInfo.inviteInfo.sessionId)
       .then((response) => {
         const data = response.data;
-        console.log( data.corporateClientDto.unlimited)
+        console.log(data.corporateClientDto.unlimited);
 
         let sessionCorporateId = null;
         // console.log("client data",data);
@@ -349,7 +438,7 @@ const SessionContext = ({
               retakeAllowed: retakeAllowed,
               clickAllowed: clickAllowed,
               selectedCorporateClientID: data.corporateClientDto.id,
-              isUnlimited:data.corporateClientDto.unlimited,
+              isUnlimited: data.corporateClientDto.unlimited,
             })
           );
           sessionCorporateId = data.corporateClientDto.id;
@@ -412,7 +501,6 @@ const SessionContext = ({
                   ...hubCommendRef.current,
                   ActionToPerform: "SaveSessionInitiatedInfo",
                 });
-        
               });
 
               if (sessionCorporateId != null) {

@@ -26,6 +26,8 @@ import { Backdrop } from "@mui/material";
 import CircularProgress from "@mui/material/CircularProgress";
 import NoOrderFound from "parts/NoOrderFound";
 import { useNavigate } from "react-router-dom";
+import offlineMode, { setOfflineMode } from "state/reducers/offlineMode";
+import { setHubConnectionData } from "state/reducers/hubConnection";
 
 export default function Remote() {
   const remotePage = useSelector((state) => state.viewerStep.remotePage);
@@ -72,166 +74,179 @@ export default function Remote() {
     console.log(
       "connect ******************************************************************"
     );
-    hubConnection.start().then(() => {
-      console.log("Hub connected");
-      setHubConnected(true);
-      hubConnection
-        .invoke("SendCommandToWinClient", {
-          ...hubCommendRef.current,
-          ActionToPerform: "Stage0",
-        })
-        .catch((err) => console.error("ERROR" + err));
-      console.log("stage0", {
-        ...hubCommendRef.current,
-        ActionToPerform: "Stage0",
-      });
+    
+      hubConnection.start().then(() => {
+        console.log("Hub connected");
+        setHubConnected(true);
 
-      localStorage.clear()
-
-      hubConnection
-        .invoke("SendCommandToWinClient", {
-          ActionToPerform: "IsBoothOffline",
-        })
-        .catch((err) => console.error("ERROR" + err));
-
-      hubConnection
-        .invoke("SendCommandToWinClient", {
-          ...hubCommendRef.current,
-          ActionToPerform: "Stage1",
-        })
-        .catch((err) => console.error("ERROR" + err));
-      console.log("win ", {
-        ...hubCommendRef.current,
-        ActionToPerform: "Stage1",
-      });
-    });
-
-
-    hubConnection.on("onWebCommandReceived", (result) => {
-      console.log(result);
-      const UserId = boothInfo.auth.boothUserId;
-      if (result.actionToPerform === "IsBoothOffline" && !result.isOffline) {
         hubConnection
           .invoke("SendCommandToWinClient", {
-            ActionToPerform: "GetBoothByUserId"
+            ActionToPerform: "IsBoothOffline",
           })
           .catch((err) => console.error("ERROR" + err));
-      }
 
-      if (result.actionToPerform === "onError") {
-        console.log("Command Error", result);
-        Dispatch(
-          setBoothError({
-            hasError: true,
-            errorName: "camera",
-            error: null,
+        hubConnection
+          .invoke("SendCommandToWinClient", {
+            ...hubCommendRef.current,
+            ActionToPerform: "Stage0",
           })
-        );
-        Dispatch(setBoothActivity({ isCameraConnected: false }));
-        const comm = {
-          ActionToPerform: "LogSave",
-          PodActivityLog: {
-            BoothId: localStorage.getItem("BoothId"),
-            SessionId: null,
-            LogType: "error",
-            LogMsg: `Failed to start hub connection. BoothId: ${localStorage.getItem(
-              "BoothId"
-            )}.}`,
-          },
-        };
-        hubConnection
-          .invoke("SendCommandToWinClient", comm)
           .catch((err) => console.error("ERROR" + err));
-      }
-
-      if (result.actionToPerform === "OnImageClicked") {
-        console.log("image clicked success");
-        Dispatch(setRemotePage(9));
-        handlePageChange(9);
-        const _photoInfo = photoInfoRef.current;
-        const isRetaking = _photoInfo.isRetaking;
-        console.log("_photoInfo2", _photoInfo);
-        if (isRetaking) {
-          Dispatch(setIncreaseRetake());
-          Dispatch(
-            setPhotoInfo({
-              photoPageStep: 1,
-              selectedPhoto: null,
-              openPhotoPreview: false,
-              isRetaking: false,
-            })
-          );
-        } else {
-          const photoClicked = localStorage.getItem("photoClicked");
-          console.log("photoClicked--------", photoClicked);
-          Dispatch(
-            setSessionInfo({
-              photoClicked: Number(photoClicked),
-            })
-          );
-        }
-        const seq = localStorage.getItem("clickSequence");
-        const comm = {
-          ActionToPerform: "LogSave",
-          PodActivityLog: {
-            BoothId: localStorage.getItem("BoothId"),
-            SessionId: localStorage.getItem("SessionId"),
-            UserEmail: localStorage.getItem("userEmail"),
-            LogType: "success",
-            LogMsg: `camera being clicked. SessionId: ${localStorage.getItem(
-              "SessionId"
-            )}. Retake:${isRetaking}. Sequence: ${seq}`,
-          },
-        };
-        hubConnection
-          .invoke("SendCommandToWinClient", comm)
-          .catch((err) => console.error("ERROR" + err));
-
-        const afterClickCommand = {
+        console.log("stage0", {
           ...hubCommendRef.current,
-          ActionToPerform: "Stage9",
-          Remote: 9,
-          Viewer: 6,
-          ActivePosition: 3,
-          ImageSequence: seq,
-          ActivePosition: 1,
-        };
-        delete afterClickCommand.customLightSettings;
-        //start live view again
+          ActionToPerform: "Stage0",
+        });
+
+        // localStorage.clear();
+
         hubConnection
-          .invoke("SendCommandToWinClient", afterClickCommand)
-          .catch((err) => console.error("ERROR" + err));
-        hubConnection
-          .invoke("SendCommandToWebClient", {
-            ...afterClickCommand,
-            ActionToPerform: "viewer",
+          .invoke("SendCommandToWinClient", {
+            ...hubCommendRef.current,
+            ActionToPerform: "Stage1",
           })
           .catch((err) => console.error("ERROR" + err));
-      }
+        console.log("win ", {
+          ...hubCommendRef.current,
+          ActionToPerform: "Stage1",
+        });
+      });
 
-      if (result.actionToPerform === "onCheckCamera") {
-        const comm = {
-          ActionToPerform: "LogSave",
-          PodActivityLog: {
-            BoothId: localStorage.getItem("BoothId"),
-            SessionId: localStorage.getItem("SessionId"),
-            LogType: "success",
-            LogMsg: `camera being checked. BoothId: ${localStorage.getItem(
-              "BoothId"
-            )}. Status:${result.imageData}`,
-          },
-        };
-        hubConnection
-          .invoke("SendCommandToWinClient", comm)
-          .catch((err) => console.error("ERROR" + err));
-        console.log("onCheckCamera");
-        if (result.imageData === "True") {
-          Dispatch(setBoothActivity({ isCameraConnected: true }));
-        } else {
-          Dispatch(setBoothActivity({ isCameraConnected: false }));
+      hubConnection.on("onWebCommandReceived", (result) => {
+        console.log("getting data ",result);
+
+        if (
+          result.actionToPerform === "IsBoothOffline" &&
+          result.isOffline === true
+        ) {
+          console.log("offline changing");
+          Dispatch(setOfflineMode({
+            offlineMode: "offline",
+            boothDetails: result.jsonBoothDetailsResult.result,
+            isDailyModeResult: result.jsonIsDailyModeResult.result,
+            zonesettingResult: result.jsonZonesettingResult.result
+        }));
+        } else if (
+          result.actionToPerform === "IsBoothOffline" &&
+          result.isOffline === false
+        ) {
+          console.log("online changing")
+          Dispatch(setOfflineMode({offlineMode:"online"}));
         }
-      }
-    });
+
+        if (result.actionToPerform === "onError") {
+          console.log("Command Error", result);
+          Dispatch(
+            setBoothError({
+              hasError: true,
+              errorName: "camera",
+              error: null,
+            })
+          );
+          Dispatch(setBoothActivity({ isCameraConnected: false }));
+          const comm = {
+            ActionToPerform: "LogSave",
+            PodActivityLog: {
+              BoothId: localStorage.getItem("BoothId"),
+              SessionId: null,
+              LogType: "error",
+              LogMsg: `Failed to start hub connection. BoothId: ${localStorage.getItem(
+                "BoothId"
+              )}.}`,
+            },
+          };
+          hubConnection
+            .invoke("SendCommandToWinClient", comm)
+            .catch((err) => console.error("ERROR" + err));
+        }
+
+        if (result.actionToPerform === "OnImageClicked") {
+          console.log("image clicked success");
+          Dispatch(setRemotePage(9));
+          handlePageChange(9);
+          const _photoInfo = photoInfoRef.current;
+          const isRetaking = _photoInfo.isRetaking;
+          console.log("_photoInfo2", _photoInfo);
+          if (isRetaking) {
+            Dispatch(setIncreaseRetake());
+            Dispatch(
+              setPhotoInfo({
+                photoPageStep: 1,
+                selectedPhoto: null,
+                openPhotoPreview: false,
+                isRetaking: false,
+              })
+            );
+          } else {
+            const photoClicked = localStorage.getItem("photoClicked");
+            console.log("photoClicked--------", photoClicked);
+            Dispatch(
+              setSessionInfo({
+                photoClicked: Number(photoClicked),
+              })
+            );
+          }
+          const seq = localStorage.getItem("clickSequence");
+          const comm = {
+            ActionToPerform: "LogSave",
+            PodActivityLog: {
+              BoothId: localStorage.getItem("BoothId"),
+              SessionId: localStorage.getItem("SessionId"),
+              UserEmail: localStorage.getItem("userEmail"),
+              LogType: "success",
+              LogMsg: `camera being clicked. SessionId: ${localStorage.getItem(
+                "SessionId"
+              )}. Retake:${isRetaking}. Sequence: ${seq}`,
+            },
+          };
+          hubConnection
+            .invoke("SendCommandToWinClient", comm)
+            .catch((err) => console.error("ERROR" + err));
+
+          const afterClickCommand = {
+            ...hubCommendRef.current,
+            ActionToPerform: "Stage9",
+            Remote: 9,
+            Viewer: 6,
+            ActivePosition: 3,
+            ImageSequence: seq,
+            ActivePosition: 1,
+          };
+          delete afterClickCommand.customLightSettings;
+          //start live view again
+          hubConnection
+            .invoke("SendCommandToWinClient", afterClickCommand)
+            .catch((err) => console.error("ERROR" + err));
+          hubConnection
+            .invoke("SendCommandToWebClient", {
+              ...afterClickCommand,
+              ActionToPerform: "viewer",
+            })
+            .catch((err) => console.error("ERROR" + err));
+        }
+
+        if (result.actionToPerform === "onCheckCamera") {
+          const comm = {
+            ActionToPerform: "LogSave",
+            PodActivityLog: {
+              BoothId: localStorage.getItem("BoothId"),
+              SessionId: localStorage.getItem("SessionId"),
+              LogType: "success",
+              LogMsg: `camera being checked. BoothId: ${localStorage.getItem(
+                "BoothId"
+              )}. Status:${result.imageData}`,
+            },
+          };
+          hubConnection
+            .invoke("SendCommandToWinClient", comm)
+            .catch((err) => console.error("ERROR" + err));
+          console.log("onCheckCamera");
+          if (result.imageData === "True") {
+            Dispatch(setBoothActivity({ isCameraConnected: true }));
+          } else {
+            Dispatch(setBoothActivity({ isCameraConnected: false }));
+          }
+        }
+      });
+    
   }, [hubConnection, Dispatch]);
 
   const sendLog = useCallback(
@@ -564,6 +579,20 @@ export default function Remote() {
     _handleSubmitRef.current = handleSubmit;
   }, [handleSubmit]);
 
+  const sendCommandtoHub = (command) => {
+    if (!hubConnected) return;
+    try {
+      
+      console.log("command ",command)
+        hubConnection
+        .invoke("SendCommandToWinClient", command)
+        .catch((err) => console.log("ERROR" + err));
+    } catch (error) {
+        console.log(error)
+    }
+
+}
+
   const handleBoothLoginCommand = useCallback(
     (BoothId, BoothName) => {
       if (!hubConnected) return;
@@ -680,6 +709,7 @@ export default function Remote() {
           <BoothLogin
             sendLog={sendLog}
             handleBoothLoginCommand={handleBoothLoginCommand}
+            sendCommandtoHub={sendCommandtoHub}
           />
         )}
         {remotePage === 100 && <LandingPage onPageChange={handlePageChange} />}
