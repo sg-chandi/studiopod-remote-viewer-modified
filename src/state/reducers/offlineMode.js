@@ -15,7 +15,7 @@ export const offlineReducer = createSlice({
     setOfflineMode(state, action) {
       state.offlineMode = action.payload.offlineMode;
       state.boothDetails = action.payload.boothDetails;
-      state.authTokenModeResult = action.payload.authTokenModeResult;
+      state.isDailyModeResult = action.payload.isDailyModeResult;
       state.authTokenModeResult = action.payload.authTokenModeResult;
       state.zonesettingResult = action.payload.zonesettingResult;
     },

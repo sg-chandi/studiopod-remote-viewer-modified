@@ -23,7 +23,7 @@ import {
 } from "state/reducers/userInfoReducer";
 // default mode
 
-export default function UserLogin({ onCheckCamera, onPageChange, sendLog }) {
+export default function UserLogin({ onCheckCamera, onPageChange, sendLog ,sendCommandtoHub}) {
   const userData = useSelector((state) => state.userInfo);
   const boothInfo = useSelector((state) => state.booth.info);
   // const sessionInfo = useSelector((state) => state.sessionInfo);
@@ -60,9 +60,10 @@ export default function UserLogin({ onCheckCamera, onPageChange, sendLog }) {
       });
       localStorage.setItem("userEmail", email);
       localStorage.setItem("userName", name);
-      
+      console.log(boothInfo)
       if (boothInfo.isDailyMode) {
-        createDailyModeOrder(name, email);
+        createDailyModeOrder(name, email,sendCommandtoHub);
+        console.log('corporateOrderData',localStorage.getItem('JsonCorporateOrderData')?.length)
       } else {
         checkAvailableClients(name, email)
           .then((res) => {

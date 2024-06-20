@@ -28,11 +28,7 @@ import { SIGNAL_R_CONNECTION } from "service/endpoints";
 import offlineMode, { setOfflineMode } from "state/reducers/offlineMode";
 import { setHubConnectionData } from "state/reducers/hubConnection";
 
-const BoothLogin = ({
-  sendLog,
-  handleBoothLoginCommand,
-  sendCommandtoHub,
-}) => {
+const BoothLogin = ({ sendLog, handleBoothLoginCommand, sendCommandtoHub }) => {
   const boothAuth = useSelector((state) => state.booth.auth);
   const [emailFocused, setEmailFocused] = useState(false);
   const [emailSubmitted, setEmailSubmitted] = useState(false);
@@ -153,6 +149,7 @@ const BoothLogin = ({
         };
         console.log("authToken ", authToken);
         authenticateDetails(res, authToken);
+         sessionStorage.setItem("authToken", authToken);
       } else if (offlineMode == "online") {
         authenticate(_email || email, _password || password)
           .then((res) => {

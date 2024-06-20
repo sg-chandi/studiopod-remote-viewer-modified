@@ -47,11 +47,13 @@ export default function Remote() {
     // PhotoPresetId:null
   });
   const navigate = useNavigate();
+  const boothActivity = useSelector((state) => state.booth.activity);
 
   const Dispatch = useDispatch();
   const [recentClickSequence, setRecentClickSequence] = useState(null);
   const [hubConnection, setHubConnection] = useState(null);
   const [hubConnected, setHubConnected] = useState(false);
+  const offlineMode = useSelector((state) => state.offline.offlineMode);
 
   useEffect(() => {
     let connectSignalR = () => {
@@ -69,15 +71,17 @@ export default function Remote() {
     photoInfoRef.current = photoInfo;
   }, [photoInfo]);
 
-  useEffect(() => {
-    if (hubConnection == null || hubConnected) return;
-    console.log(
-      "connect ******************************************************************"
-    );
-    
+    useEffect(() => {
+      if (hubConnection == null || hubConnected) return;
+      console.log(
+        "connect ******************************************************************"
+      );
+
       hubConnection.start().then(() => {
         console.log("Hub connected");
         setHubConnected(true);
+
+        // localStorage.clear()
 
         hubConnection
           .invoke("SendCommandToWinClient", {
@@ -96,8 +100,6 @@ export default function Remote() {
           ActionToPerform: "Stage0",
         });
 
-        // localStorage.clear();
-
         hubConnection
           .invoke("SendCommandToWinClient", {
             ...hubCommendRef.current,
@@ -111,25 +113,70 @@ export default function Remote() {
       });
 
       hubConnection.on("onWebCommandReceived", (result) => {
-        console.log("getting data ",result);
+        console.log("getting data ", result);
 
         if (
           result.actionToPerform === "IsBoothOffline" &&
           result.isOffline === true
         ) {
-          console.log("offline changing");
-          Dispatch(setOfflineMode({
-            offlineMode: "offline",
-            boothDetails: result.jsonBoothDetailsResult.result,
-            isDailyModeResult: result.jsonIsDailyModeResult.result,
-            zonesettingResult: result.jsonZonesettingResult.result
-        }));
+          // Dispatch(setBoothActivity({ hasInterConnection: false }));
+          console.log(offlineMode, " ", boothActivity.hasInterConnection);
+          console.log("offline changing*****************************************");
+          Dispatch(
+            setOfflineMode({
+              offlineMode: "offline",
+              boothDetails: result.jsonBoothDetailsResult?.result,
+              isDailyModeResult: result.jsonIsDailyModeResult?.result,
+              zonesettingResult: result.jsonZonesettingResult?.result,
+            })
+          );
+          console.log('offlineData', offlineMode)
+          console.log(boothActivity.hasInterConnection)
+          const payload = {
+            price: 0,
+            units: 1,
+            transaxtionId: "",
+            backgroundUrlUI: "",
+            backgroundUrl: "",
+            touchupService: false,
+            backgroundServicePrice: null,
+            touchupServicePrice: null,
+          };
+          const isCorporateOrderPresent = localStorage.getItem(
+            "isCorporateOrderPresent"
+          );
+
+          if (!isCorporateOrderPresent) {
+            console.log("CorporateOrder called*********")
+            // hubConnection
+            // .invoke("SendCommandToWinClient", {
+            //   ActionToPerform: "CorporateOrder",
+            //   authToken: sessionStorage.getItem("authToken"),
+            //   corporateOrderDto: payload,
+            // })
+            // .catch((err) => console.error("ERROR" + err));
+            // setTimeout(() => {
+              console.log("GetCorporateOrder called*********")
+              hubConnection
+              .invoke("SendCommandToWinClient", {
+                ActionToPerform: "GetCorporateOrder",
+              })
+              .catch((err) => console.error("ERROR" + err));
+            // }, 60000);
+          }
         } else if (
           result.actionToPerform === "IsBoothOffline" &&
           result.isOffline === false
         ) {
-          console.log("online changing")
-          Dispatch(setOfflineMode({offlineMode:"online"}));
+          console.log("online changing");
+          Dispatch(setOfflineMode({ offlineMode: "online" }));
+        }
+
+        if (result.actionToPerform === "CorporateOrder") {
+          console.log('CorporateOrder',result);
+          
+          localStorage.setItem("isCorporateOrderPresent", true);
+          localStorage.setItem('JsonCorporateOrderData', JSON.stringify(result.jsonCorporateOrderResult?.result));
         }
 
         if (result.actionToPerform === "onError") {
@@ -246,8 +293,7 @@ export default function Remote() {
           }
         }
       });
-    
-  }, [hubConnection, Dispatch]);
+    }, [hubConnection, Dispatch]);
 
   const sendLog = useCallback(
     ({
@@ -551,6 +597,7 @@ export default function Remote() {
     }
     command.customLightSettings = [selectedZone];
     console.log("saveSyncData", command);
+    if(offlineMode=='online'){
     validateSession(sessionInfo.inviteInfo.sessionId)
       .then((res) => {
         console.log("update1");
@@ -574,6 +621,7 @@ export default function Remote() {
         });
         Dispatch(setSessionInfo({ sessionSubmitting: true }));
       });
+    }
   };
   useEffect(() => {
     _handleSubmitRef.current = handleSubmit;
@@ -582,16 +630,14 @@ export default function Remote() {
   const sendCommandtoHub = (command) => {
     if (!hubConnected) return;
     try {
-      
-      console.log("command ",command)
-        hubConnection
+      console.log("command ", command);
+      hubConnection
         .invoke("SendCommandToWinClient", command)
         .catch((err) => console.log("ERROR" + err));
     } catch (error) {
-        console.log(error)
+      console.log(error);
     }
-
-}
+  };
 
   const handleBoothLoginCommand = useCallback(
     (BoothId, BoothName) => {
@@ -720,6 +766,7 @@ export default function Remote() {
             onPageChange={handlePageChange}
             onCheckCamera={checkCamera}
             sendLog={sendLog}
+            sendCommandtoHub={sendCommandtoHub}
           />
         )}
         {/* No order found */}

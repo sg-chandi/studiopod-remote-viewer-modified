@@ -4,12 +4,15 @@ import DialogContent from "@mui/material/DialogContent";
 import { UniOn } from "assets/images";
 import { useDispatch, useSelector } from "react-redux";
 import { setBoothActivity } from "state/reducers/boothInfo";
+import offlineMode, { setOfflineMode } from "state/reducers/offlineMode";
 
 const InactivityModal = ({ onCheckCamera }) => {
   const boothActivity = useSelector((state) => state.booth.activity);
   const [refresh, setRefresh] = useState(false);
   const [cameraConnectTimer, setCameraConnectTimer] = useState(30);
   const Dispatch = useDispatch();
+  const offlineMode = useSelector((state) => state.offline.offlineMode);
+
   useEffect(() => {
     if (boothActivity.isCameraConnected) return;
     const timer = setInterval(() => {
@@ -28,14 +31,14 @@ const InactivityModal = ({ onCheckCamera }) => {
     let timer;
     if (cameraConnectTimer <= 0) {
       onCheckCamera();
-      timer=  setTimeout(() => {
+      timer = setTimeout(() => {
         setCameraConnectTimer(30);
         setRefresh((e) => !e);
       }, 5000);
     }
-    return()=>{
-      clearTimeout(timer)
-    }
+    return () => {
+      clearTimeout(timer);
+    };
   }, [cameraConnectTimer]);
 
   useEffect(() => {
@@ -61,18 +64,25 @@ const InactivityModal = ({ onCheckCamera }) => {
     };
   }, []);
 
+  console.log('connectivity ',
+    boothActivity.hasInterConnection, offlineMode)
+  console.log('connectivity2 ',
+    boothActivity.isInactive ||
+    !boothActivity.isCameraConnected ||
+    (!boothActivity.hasInterConnection && offlineMode==="online"))
+
   return (
     <>
       <Dialog
         open={
           boothActivity.isInactive ||
           !boothActivity.isCameraConnected ||
-          !boothActivity.hasInterConnection
+          (!boothActivity.hasInterConnection && offlineMode==="online")
         }
         aria-labelledby="alert-dialog-title"
         aria-describedby="alert-dialog-description"
         className="sessionDialogue"
-        transitionDuration={{exit:0}}
+        transitionDuration={{ exit: 0 }}
       >
         <DialogContent>
           <div className="still_content">
@@ -99,7 +109,7 @@ const InactivityModal = ({ onCheckCamera }) => {
                 </p>
               </>
             )}
-            {!boothActivity.hasInterConnection && (
+            {(!boothActivity.hasInterConnection && offlineMode==="online") && (
               <>
                 <h2>
                   Internet connection <br />
@@ -108,6 +118,15 @@ const InactivityModal = ({ onCheckCamera }) => {
                 {/* <p>Click anywhere to keep your session active.</p> */}
               </>
             )}
+            {/* {!boothActivity.hasInterConnection && (
+              <>
+                <h2>
+                  Internet connection <br />
+                  lost
+                </h2> */}
+            {/* <p>Click anywhere to keep your session active.</p> */}
+            {/* </> */}
+            {/* )} */}
           </div>
           <div className="logo_absolute">
             <img src={UniOn} alt="curve" className="union" />

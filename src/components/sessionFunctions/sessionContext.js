@@ -219,10 +219,12 @@ const SessionContext = ({
   //fetch client light setting
   useEffect(() => {
     if (!sessionInfo.inviteInfo.corporateClientId) return;
+    console.log(offlineModeData)
     getClientLightZone(sessionInfo.inviteInfo.corporateClientId).then(
       (zone) => {
         console.log("99999999999999999999zine", zone);
         if (zone.data !== "") {
+          console.log(zone.data)
           let clientZone = { key: "Dark", value: zone.data };
           Dispatch(
             setClientZone({
@@ -306,10 +308,16 @@ const SessionContext = ({
       inviteeEmail: email,
       inviteeName: name,
     };
-    Dispatch(setLoading(true));
-    dailyOrderCreate(payload)
-      .then((res) => {
-        const data = res.data;
+    // Dispatch(setLoading(true));
+
+    if (offlineMode == "offline") {
+      const JsonCorporateOrderData = localStorage.getItem(
+        "JsonCorporateOrderData"
+      );
+      console.log("JsonCorporateOrderData",JsonCorporateOrderData)
+      if (JsonCorporateOrderData) {
+        const corporateOrderData = JSON.parse(JsonCorporateOrderData);
+        const data = corporateOrderData[0]; //get the first element of the array
         Dispatch(setUserLoggedIn(true));
         Dispatch(
           setSessionInviteInfo({
@@ -326,25 +334,62 @@ const SessionContext = ({
         );
         localStorage.setItem("SessionId", data.sessionId);
         Dispatch(setSessionInfo({ orderFetched: true }));
-        sendLog({
-          LogMsg: `Creating daily order. BoothId: ${localStorage.getItem(
-            "BoothId"
-          )}, UserEmail:${email} `,
-          LogType: "success",
+        //set the rest of element in array
+        const restOfCorporateOrderData = corporateOrderData.slice(1);
+        if (restOfCorporateOrderData.length == 0) {
+          localStorage.removeItem("isCorporateOrderPresent");
+          localStorage.removeItem("JsonCorporateOrderData");
+          Dispatch(setRemotePage(22));
+        } else {
+          localStorage.setItem(
+            "JsonCorporateOrderData",
+            restOfCorporateOrderData
+          );
+        }
+        // Dispatch(setLoading(false));
+      }
+    }
+
+    if (offlineMode == "online") {
+      dailyOrderCreate(payload)
+        .then((res) => {
+          const data = res.data;
+          Dispatch(setUserLoggedIn(true));
+          Dispatch(
+            setSessionInviteInfo({
+              activationKey: data.activationKey,
+              appointmentId: data.appointmentId,
+              coupon: data.coupon,
+              inviteId: data.id,
+              inviteName: data.name,
+              sessionId: data.sessionId,
+              user: data.user,
+              userEmail: data.userEmail,
+              corporateClientId: data.corporateClientId,
+            })
+          );
+          localStorage.setItem("SessionId", data.sessionId);
+          Dispatch(setSessionInfo({ orderFetched: true }));
+          sendLog({
+            LogMsg: `Creating daily order. BoothId: ${localStorage.getItem(
+              "BoothId"
+            )}, UserEmail:${email} `,
+            LogType: "success",
+          });
+        })
+        .catch(() => {
+          sendLog({
+            LogMsg: `Creating daily order failed. BoothId: ${localStorage.getItem(
+              "BoothId"
+            )}, UserEmail:${email} `,
+            LogType: "success",
+          });
+          Dispatch(resetSateForUser(false));
+        })
+        .finally(() => {
+          Dispatch(setLoading(false));
         });
-      })
-      .catch(() => {
-        sendLog({
-          LogMsg: `Creating daily order failed. BoothId: ${localStorage.getItem(
-            "BoothId"
-          )}, UserEmail:${email} `,
-          LogType: "success",
-        });
-        Dispatch(resetSateForUser(false));
-      })
-      .finally(() => {
-        Dispatch(setLoading(false));
-      });
+    }
   };
 
   // FOR CLUB MODE ORDER FETCH
@@ -412,6 +457,7 @@ const SessionContext = ({
 
   const InitialSession = useCallback(() => {
     Dispatch(setLoading(true));
+    if(offlineMode=='online'){
     validateSession(sessionInfo.inviteInfo.sessionId)
       .then((response) => {
         const data = response.data;
@@ -566,6 +612,7 @@ const SessionContext = ({
           LogType: "error",
         });
       });
+    }
   }, [sessionInfo.inviteInfo, Dispatch, boothInfo, sendLog]);
   // initiate session after invite fetch
   useEffect(() => {
@@ -580,7 +627,7 @@ const SessionContext = ({
 
   useEffect(() => {
     const handleOnlineStatusChange = () => {
-      Dispatch(setBoothActivity({ hasInterConnection: navigator.onLine }));
+        Dispatch(setBoothActivity({ hasInterConnection: navigator.onLine }));
       sendLog({
         LogMsg: `Internet disconnected. BoothId: ${localStorage.getItem(
           "BoothId"
@@ -590,7 +637,6 @@ const SessionContext = ({
     };
     window.addEventListener("online", handleOnlineStatusChange);
     window.addEventListener("offline", handleOnlineStatusChange);
-
     return () => {
       window.removeEventListener("online", handleOnlineStatusChange);
       window.removeEventListener("offline", handleOnlineStatusChange);
