@@ -136,7 +136,6 @@ const BoothLogin = ({ sendLog, handleBoothLoginCommand, sendCommandtoHub }) => {
       console.log("mode ", offlineMode);
       setLocalLoading(true);
       if ((!_email || !_password) && (!email || !password)) return;
-      // sendCommandtoHub({ActionToPerform: "IsBoothOffline"})
 
       if (offlineMode == "idle") return;
 
@@ -254,6 +253,8 @@ const BoothLogin = ({ sendLog, handleBoothLoginCommand, sendCommandtoHub }) => {
           } else if (offlineMode == "online") {
             check_booth_mode = await checkBoothMode();
           }
+
+          console.log("boothmode***** ",offlineModeData)
 
           Dispatch(
             setBoothMode({

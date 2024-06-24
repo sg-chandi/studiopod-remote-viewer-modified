@@ -21,6 +21,7 @@ import {
   setUserLoggedIn,
   resetSateForUser,
 } from "state/reducers/userInfoReducer";
+import offlineMode from "state/reducers/offlineMode";
 // default mode
 
 export default function UserLogin({ onCheckCamera, onPageChange, sendLog ,sendCommandtoHub}) {

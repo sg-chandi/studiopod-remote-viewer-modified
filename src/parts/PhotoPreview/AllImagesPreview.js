@@ -11,10 +11,12 @@ export default function AllImagesPreview() {
   const currentImageSequence = sessionInfo.currentImageSequence
 
   const renderPhotos = useMemo(() => {
-    let allImages = []
+    let allImages = [];
+    console.log("coupon ", sessionInfo.initiatedSession.coupon)
     for (let index = 1; index < photoAllowed+1; index++) {
       if (index <= currentImageSequence) {
         let liveTime = new Date().getTime();
+        console.log(sessionInfo.initiatedSession.coupon)
         const url =
           PHOTO_SESSION_BASEURL +
           sessionInfo.initiatedSession.coupon +
@@ -37,6 +39,10 @@ export default function AllImagesPreview() {
     }
     return allImages
   }, [photoAllowed, photoClicked])
+
+  console.log(renderPhotos)
+  console.log(PHOTO_SESSION_BASEURL)
+  console.log("photo ",photoAllowed, photoClicked)
 
 
   return (

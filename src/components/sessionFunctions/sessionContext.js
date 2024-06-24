@@ -219,12 +219,13 @@ const SessionContext = ({
   //fetch client light setting
   useEffect(() => {
     if (!sessionInfo.inviteInfo.corporateClientId) return;
-    console.log(offlineModeData)
+    if (offlineMode === "offline") return;
+    console.log(offlineModeData);
     getClientLightZone(sessionInfo.inviteInfo.corporateClientId).then(
       (zone) => {
         console.log("99999999999999999999zine", zone);
         if (zone.data !== "") {
-          console.log(zone.data)
+          console.log(zone.data);
           let clientZone = { key: "Dark", value: zone.data };
           Dispatch(
             setClientZone({
@@ -295,7 +296,7 @@ const SessionContext = ({
   }, [sessionInfo, userData, Dispatch, boothInfo, sendLog]);
 
   // FOR DAILY MODE ORDER FETCH
-  const createDailyModeOrder = (name, email) => {
+  const createDailyModeOrder = (name, email, sendCommandtoHub) => {
     const payload = {
       price: 0,
       units: 1,
@@ -309,12 +310,18 @@ const SessionContext = ({
       inviteeName: name,
     };
     // Dispatch(setLoading(true));
-
+    const isCorporateOrderPresent = localStorage.getItem(
+      "isCorporateOrderPresent"
+    );
+    console.log("isCorporateOrderPresent ", isCorporateOrderPresent);
     if (offlineMode == "offline") {
+      // if (!isCorporateOrderPresent) {
+      //   sendCommandtoHub({ ActionToPerform: "GetCorporateOrder" });
+      // }
       const JsonCorporateOrderData = localStorage.getItem(
         "JsonCorporateOrderData"
       );
-      console.log("JsonCorporateOrderData",JsonCorporateOrderData)
+      console.log("JsonCorporateOrderData", JsonCorporateOrderData);
       if (JsonCorporateOrderData) {
         const corporateOrderData = JSON.parse(JsonCorporateOrderData);
         const data = corporateOrderData[0]; //get the first element of the array
@@ -343,7 +350,7 @@ const SessionContext = ({
         } else {
           localStorage.setItem(
             "JsonCorporateOrderData",
-            restOfCorporateOrderData
+            JSON.stringify(restOfCorporateOrderData)
           );
         }
         // Dispatch(setLoading(false));
@@ -454,166 +461,358 @@ const SessionContext = ({
   };
   //initiate session
   // omit checkZoneSettings for now TODO
-
-  const InitialSession = useCallback(() => {
-    Dispatch(setLoading(true));
-    if(offlineMode=='online'){
-    validateSession(sessionInfo.inviteInfo.sessionId)
-      .then((response) => {
-        const data = response.data;
-        console.log(data.corporateClientDto.unlimited);
-
-        let sessionCorporateId = null;
-        // console.log("client data",data);
-        let retakeAllowed = data.corporateClientDto?.retakesAllowed;
-        let clickAllowed = data.corporateClientDto?.photosAllowed;
-        if (data.corporateClientDto) {
-          const isDaily = boothInfo.isDailyMode;
-          // console.log("isDaily",isDaily);
-          if (isDaily && data?.corporateClientDto?.dailyPhotosAllowed) {
-            clickAllowed = data.corporateClientDto.dailyPhotosAllowed;
-          }
-          if (isDaily && data?.corporateClientDto?.dailyRetakesAllowed) {
-            retakeAllowed = data.corporateClientDto.dailyRetakesAllowed;
-          }
-          // console.log("retakeAllowed",retakeAllowed);
-          // console.log("clickAllowed",clickAllowed);
-          console.log(data.corporateOrder);
-          Dispatch(
-            setSessionInfo({
-              retakeAllowed: retakeAllowed,
-              clickAllowed: clickAllowed,
-              selectedCorporateClientID: data.corporateClientDto.id,
-              isUnlimited: data.corporateClientDto.unlimited,
+  const sessionValidation = (data) => {
+    let sessionCorporateId = null;
+    // console.log("client data",data);
+    let retakeAllowed = data.corporateClientDto?.retakesAllowed;
+    let clickAllowed = data.corporateClientDto?.photosAllowed;
+    if (data.corporateClientDto) {
+      const isDaily = boothInfo.isDailyMode;
+      // console.log("isDaily",isDaily);
+      if (isDaily && data?.corporateClientDto?.dailyPhotosAllowed) {
+        clickAllowed = data.corporateClientDto?.dailyPhotosAllowed;
+      }
+      if (isDaily && data?.corporateClientDto?.dailyRetakesAllowed) {
+        retakeAllowed = data.corporateClientDto.dailyRetakesAllowed;
+      }
+      // console.log("retakeAllowed",retakeAllowed);
+      // console.log("clickAllowed",clickAllowed);
+      console.log(data.corporateOrder);
+      Dispatch(
+        setSessionInfo({
+          retakeAllowed: retakeAllowed,
+          clickAllowed: clickAllowed,
+          selectedCorporateClientID: data.corporateClientDto.id,
+          isUnlimited: data.corporateClientDto.unlimited,
+        })
+      );
+      sessionCorporateId = data.corporateClientDto.id;
+    }
+    console.log("session status:", data.status);
+    sendLog({
+      LogMsg: `Validating session. SessionId: ${sessionInfo.inviteInfo.sessionId} `,
+      LogType: "success",
+    });
+    if (
+      data.status === "INVITEACCEPTED" ||
+      data.status === "INITIATED" ||
+      data.status === "CONDUCTED" ||
+      data.status === "COMPLETED"
+    ) {
+      let initiatedSessionUser = {
+        id: data.id,
+        name: data.name,
+        coupon: data.coupon,
+        inviteSent: data.inviteSent,
+        inviteAccepted: data.inviteAccepted,
+        sessionCompleted: data.sessionCompleted,
+        status: "INITIATED",
+        boothId: boothInfo.boothId,
+        userId: data.user.id,
+        corporateOrderId: data.corporateOrder.id,
+        retakeAllowed: retakeAllowed,
+        clickAllowed: clickAllowed,
+      };
+      Dispatch(setSessionInitiated(initiatedSessionUser));
+      Dispatch(setSessionInfo({ sessionFetched: true }));
+      let initiatedSessionUserAPI = {
+        id: data.id,
+        name: data.name,
+        coupon: data.coupon,
+        inviteSent: data.inviteSent,
+        inviteAccepted: data.inviteAccepted,
+        sessionCompleted: data.sessionCompleted,
+        status: "INITIATED",
+        boothId: boothInfo.boothId,
+        userId: data.user.id,
+        corporateOrderId: data.corporateOrder.id,
+      };
+      console.log("update2");
+      if (offlineMode === "offline") {
+        hubConnection.start().then(() => {
+          console.log("Hub connected");
+          hubConnection
+            .invoke("SendCommandToWinClient", {
+              ActionToPerform: "SaveSessionInitiatedInfo",
             })
-          );
-          sessionCorporateId = data.corporateClientDto.id;
-        }
-        console.log("session status:", data.status);
-        sendLog({
-          LogMsg: `Validating session. SessionId: ${sessionInfo.inviteInfo.sessionId} `,
-          LogType: "success",
+            .catch((err) => console.error("ERROR" + err));
+          console.log("SaveSessionInitiatedInfo", {
+            ...hubCommendRef.current,
+            ActionToPerform: "SaveSessionInitiatedInfo",
+          });
         });
-        if (
-          data.status === "INVITEACCEPTED" ||
-          data.status === "INITIATED" ||
-          data.status === "CONDUCTED" ||
-          data.status === "COMPLETED"
-        ) {
-          let initiatedSessionUser = {
-            id: data.id,
-            name: data.name,
-            coupon: data.coupon,
-            inviteSent: data.inviteSent,
-            inviteAccepted: data.inviteAccepted,
-            sessionCompleted: data.sessionCompleted,
-            status: "INITIATED",
-            boothId: boothInfo.boothId,
-            userId: data.user.id,
-            corporateOrderId: data.corporateOrder.id,
-            retakeAllowed: retakeAllowed,
-            clickAllowed: clickAllowed,
-          };
-          Dispatch(setSessionInitiated(initiatedSessionUser));
-          Dispatch(setSessionInfo({ sessionFetched: true }));
-          let initiatedSessionUserAPI = {
-            id: data.id,
-            name: data.name,
-            coupon: data.coupon,
-            inviteSent: data.inviteSent,
-            inviteAccepted: data.inviteAccepted,
-            sessionCompleted: data.sessionCompleted,
-            status: "INITIATED",
-            boothId: boothInfo.boothId,
-            userId: data.user.id,
-            corporateOrderId: data.corporateOrder.id,
-          };
-          console.log("update2");
-          updateSession(initiatedSessionUserAPI)
-            .then((response) => {
-              sendLog({
-                LogMsg: `Updating session. SessionId: ${sessionInfo.inviteInfo.sessionId} `,
-                LogType: "success",
-              });
+      }
+      if (offlineMode === "online") {
+        updateSession(initiatedSessionUserAPI)
+          .then((response) => {
+            sendLog({
+              LogMsg: `Updating session. SessionId: ${sessionInfo.inviteInfo.sessionId} `,
+              LogType: "success",
+            });
 
-              hubConnection.start().then(() => {
-                console.log("Hub connected");
-                hubConnection
-                  .invoke("SendCommandToWinClient", {
-                    ActionToPerform: "SaveSessionInitiatedInfo",
-                  })
-                  .catch((err) => console.error("ERROR" + err));
-                console.log("SaveSessionInitiatedInfo", {
-                  ...hubCommendRef.current,
+            hubConnection.start().then(() => {
+              console.log("Hub connected");
+              hubConnection
+                .invoke("SendCommandToWinClient", {
                   ActionToPerform: "SaveSessionInitiatedInfo",
-                });
-              });
-
-              if (sessionCorporateId != null) {
-                // console.log("if selectedCorporateClientID")
-                getCorporatePreset(data.corporateClientDto.id).then(
-                  (response) => {
-                    Dispatch(
-                      setSessionInfo({
-                        presetAvailable: response.data,
-                        presetActionID: response.data.id,
-                        hasError: false,
-                        isValid: true,
-                      })
-                    );
-                    onPresetFetched({
-                      presetId: response.data.id,
-                      coupon: data.coupon,
-                    });
-                  }
-                );
-              } else {
-                // console.log(" else if response.data.boothId")
-                getBoothPreset(response.data.boothId || boothInfo.boothId)
-                  .then((response) => {
-                    Dispatch(
-                      setSessionInfo({
-                        presetAvailable: response.data,
-                        presetActionID: response.data.id,
-                        hasError: false,
-                        isValid: true,
-                      })
-                    );
-                    onPresetFetched({
-                      presetId: response.data.id,
-                      coupon: data.coupon,
-                    });
-                  })
-                  .finally(() => {
-                    Dispatch(setLoading(false));
-                  });
-              }
-            })
-            .catch((e) => {
-              sendLog({
-                LogMsg: `Updating session failed. SessionId: ${sessionInfo.inviteInfo.sessionId} `,
-                LogType: "error",
+                })
+                .catch((err) => console.error("ERROR" + err));
+              console.log("SaveSessionInitiatedInfo", {
+                ...hubCommendRef.current,
+                ActionToPerform: "SaveSessionInitiatedInfo",
               });
             });
-          // CHANGE PAGE
-          Dispatch(setRemotePage(6));
-        } else {
-          //  clear session TODO
+
+            if (sessionCorporateId != null) {
+              // console.log("if selectedCorporateClientID")
+              getCorporatePreset(data.corporateClientDto.id).then(
+                (response) => {
+                  Dispatch(
+                    setSessionInfo({
+                      presetAvailable: response.data,
+                      presetActionID: response.data.id,
+                      hasError: false,
+                      isValid: true,
+                    })
+                  );
+                  onPresetFetched({
+                    presetId: response.data.id,
+                    coupon: data.coupon,
+                  });
+                }
+              );
+            } else {
+              // console.log(" else if response.data.boothId")
+              getBoothPreset(response.data.boothId || boothInfo.boothId)
+                .then((response) => {
+                  Dispatch(
+                    setSessionInfo({
+                      presetAvailable: response.data,
+                      presetActionID: response.data.id,
+                      hasError: false,
+                      isValid: true,
+                    })
+                  );
+                  onPresetFetched({
+                    presetId: response.data.id,
+                    coupon: data.coupon,
+                  });
+                })
+                .finally(() => {
+                  Dispatch(setLoading(false));
+                });
+            }
+          })
+          .catch((e) => {
+            sendLog({
+              LogMsg: `Updating session failed. SessionId: ${sessionInfo.inviteInfo.sessionId} `,
+              LogType: "error",
+            });
+          });
+      }
+      // CHANGE PAGE
+      Dispatch(setRemotePage(6));
+    } else {
+      //  clear session TODO
+      sendLog({
+        LogMsg: `Session initiated from another booth. SessionId: ${sessionInfo.inviteInfo.sessionId} `,
+        LogType: "error",
+      });
+      toast.error("Session initiated from another booth");
+    }
+  };
+
+  const InitialSession = useCallback(async () => {
+    Dispatch(setLoading(true));
+    let data;
+    if (offlineMode == "offline") {
+      const JsonCorporateOrderData = localStorage.getItem(
+        "JsonCorporateOrderData"
+      );
+      if (JsonCorporateOrderData) {
+        const corporateOrderData = JSON.parse(JsonCorporateOrderData);
+        data = corporateOrderData[0]?.session;
+        console.log(data);
+        sessionValidation(data);
+      }
+    }
+
+    if (offlineMode == "online") {
+      validateSession(sessionInfo.inviteInfo.sessionId)
+        .then((response) => {
+          const data = response.data;
+          console.log(data.corporateClientDto.unlimited);
+          sessionValidation(data);
+        })
+        .catch((er) => {
           sendLog({
-            LogMsg: `Session initiated from another booth. SessionId: ${sessionInfo.inviteInfo.sessionId} `,
+            LogMsg: `Validating session failed. SessionId: ${sessionInfo.inviteInfo.sessionId} `,
             LogType: "error",
           });
-          toast.error("Session initiated from another booth");
-        }
-      })
-      .catch((er) => {
-        sendLog({
-          LogMsg: `Validating session failed. SessionId: ${sessionInfo.inviteInfo.sessionId} `,
-          LogType: "error",
         });
-      });
     }
+    Dispatch(setLoading(false));
   }, [sessionInfo.inviteInfo, Dispatch, boothInfo, sendLog]);
+
+  // const InitialSession = useCallback(() => {
+  //   Dispatch(setLoading(true));
+  //   if(offlineMode=='online'){
+  //   validateSession(sessionInfo.inviteInfo.sessionId)
+  //     .then((response) => {
+  //       const data = response.data;
+  //       console.log(data.corporateClientDto.unlimited);
+
+  //       let sessionCorporateId = null;
+  //       // console.log("client data",data);
+  //       let retakeAllowed = data.corporateClientDto?.retakesAllowed;
+  //       let clickAllowed = data.corporateClientDto?.photosAllowed;
+  //       if (data.corporateClientDto) {
+  //         const isDaily = boothInfo.isDailyMode;
+  //         // console.log("isDaily",isDaily);
+  //         if (isDaily && data?.corporateClientDto?.dailyPhotosAllowed) {
+  //           clickAllowed = data.corporateClientDto.dailyPhotosAllowed;
+  //         }
+  //         if (isDaily && data?.corporateClientDto?.dailyRetakesAllowed) {
+  //           retakeAllowed = data.corporateClientDto.dailyRetakesAllowed;
+  //         }
+  //         // console.log("retakeAllowed",retakeAllowed);
+  //         // console.log("clickAllowed",clickAllowed);
+  //         console.log(data.corporateOrder);
+  //         Dispatch(
+  //           setSessionInfo({
+  //             retakeAllowed: retakeAllowed,
+  //             clickAllowed: clickAllowed,
+  //             selectedCorporateClientID: data.corporateClientDto.id,
+  //             isUnlimited: data.corporateClientDto.unlimited,
+  //           })
+  //         );
+  //         sessionCorporateId = data.corporateClientDto.id;
+  //       }
+  //       console.log("session status:", data.status);
+  //       sendLog({
+  //         LogMsg: `Validating session. SessionId: ${sessionInfo.inviteInfo.sessionId} `,
+  //         LogType: "success",
+  //       });
+  //       if (
+  //         data.status === "INVITEACCEPTED" ||
+  //         data.status === "INITIATED" ||
+  //         data.status === "CONDUCTED" ||
+  //         data.status === "COMPLETED"
+  //       ) {
+  //         let initiatedSessionUser = {
+  //           id: data.id,
+  //           name: data.name,
+  //           coupon: data.coupon,
+  //           inviteSent: data.inviteSent,
+  //           inviteAccepted: data.inviteAccepted,
+  //           sessionCompleted: data.sessionCompleted,
+  //           status: "INITIATED",
+  //           boothId: boothInfo.boothId,
+  //           userId: data.user.id,
+  //           corporateOrderId: data.corporateOrder.id,
+  //           retakeAllowed: retakeAllowed,
+  //           clickAllowed: clickAllowed,
+  //         };
+  //         Dispatch(setSessionInitiated(initiatedSessionUser));
+  //         Dispatch(setSessionInfo({ sessionFetched: true }));
+  //         let initiatedSessionUserAPI = {
+  //           id: data.id,
+  //           name: data.name,
+  //           coupon: data.coupon,
+  //           inviteSent: data.inviteSent,
+  //           inviteAccepted: data.inviteAccepted,
+  //           sessionCompleted: data.sessionCompleted,
+  //           status: "INITIATED",
+  //           boothId: boothInfo.boothId,
+  //           userId: data.user.id,
+  //           corporateOrderId: data.corporateOrder.id,
+  //         };
+  //         console.log("update2");
+  //         updateSession(initiatedSessionUserAPI)
+  //           .then((response) => {
+  //             sendLog({
+  //               LogMsg: `Updating session. SessionId: ${sessionInfo.inviteInfo.sessionId} `,
+  //               LogType: "success",
+  //             });
+
+  //             hubConnection.start().then(() => {
+  //               console.log("Hub connected");
+  //               hubConnection
+  //                 .invoke("SendCommandToWinClient", {
+  //                   ActionToPerform: "SaveSessionInitiatedInfo",
+  //                 })
+  //                 .catch((err) => console.error("ERROR" + err));
+  //               console.log("SaveSessionInitiatedInfo", {
+  //                 ...hubCommendRef.current,
+  //                 ActionToPerform: "SaveSessionInitiatedInfo",
+  //               });
+  //             });
+
+  //             if (sessionCorporateId != null) {
+  //               // console.log("if selectedCorporateClientID")
+  //               getCorporatePreset(data.corporateClientDto.id).then(
+  //                 (response) => {
+  //                   Dispatch(
+  //                     setSessionInfo({
+  //                       presetAvailable: response.data,
+  //                       presetActionID: response.data.id,
+  //                       hasError: false,
+  //                       isValid: true,
+  //                     })
+  //                   );
+  //                   onPresetFetched({
+  //                     presetId: response.data.id,
+  //                     coupon: data.coupon,
+  //                   });
+  //                 }
+  //               );
+  //             } else {
+  //               // console.log(" else if response.data.boothId")
+  //               getBoothPreset(response.data.boothId || boothInfo.boothId)
+  //                 .then((response) => {
+  //                   Dispatch(
+  //                     setSessionInfo({
+  //                       presetAvailable: response.data,
+  //                       presetActionID: response.data.id,
+  //                       hasError: false,
+  //                       isValid: true,
+  //                     })
+  //                   );
+  //                   onPresetFetched({
+  //                     presetId: response.data.id,
+  //                     coupon: data.coupon,
+  //                   });
+  //                 })
+  //                 .finally(() => {
+  //                   Dispatch(setLoading(false));
+  //                 });
+  //             }
+  //           })
+  //           .catch((e) => {
+  //             sendLog({
+  //               LogMsg: `Updating session failed. SessionId: ${sessionInfo.inviteInfo.sessionId} `,
+  //               LogType: "error",
+  //             });
+  //           });
+  //         // CHANGE PAGE
+  //         Dispatch(setRemotePage(6));
+  //       } else {
+  //         //  clear session TODO
+  //         sendLog({
+  //           LogMsg: `Session initiated from another booth. SessionId: ${sessionInfo.inviteInfo.sessionId} `,
+  //           LogType: "error",
+  //         });
+  //         toast.error("Session initiated from another booth");
+  //       }
+  //     })
+  //     .catch((er) => {
+  //       sendLog({
+  //         LogMsg: `Validating session failed. SessionId: ${sessionInfo.inviteInfo.sessionId} `,
+  //         LogType: "error",
+  //       });
+  //     });
+  //   }
+  // }, [sessionInfo.inviteInfo, Dispatch, boothInfo, sendLog]);
   // initiate session after invite fetch
   useEffect(() => {
     if (!sessionInfo.inviteInfo.sessionId || sessionInfo.sessionFetched) return;
@@ -627,7 +826,7 @@ const SessionContext = ({
 
   useEffect(() => {
     const handleOnlineStatusChange = () => {
-        Dispatch(setBoothActivity({ hasInterConnection: navigator.onLine }));
+      Dispatch(setBoothActivity({ hasInterConnection: navigator.onLine }));
       sendLog({
         LogMsg: `Internet disconnected. BoothId: ${localStorage.getItem(
           "BoothId"

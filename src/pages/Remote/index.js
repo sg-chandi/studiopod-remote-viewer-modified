@@ -54,6 +54,7 @@ export default function Remote() {
   const [hubConnection, setHubConnection] = useState(null);
   const [hubConnected, setHubConnected] = useState(false);
   const offlineMode = useSelector((state) => state.offline.offlineMode);
+  const offlineModeData = useSelector((state) => state.offline);
 
   useEffect(() => {
     let connectSignalR = () => {
@@ -113,7 +114,7 @@ export default function Remote() {
       });
 
       hubConnection.on("onWebCommandReceived", (result) => {
-        console.log("getting data ", result);
+        // console.log("getting data ", result);
 
         if (
           result.actionToPerform === "IsBoothOffline" &&
@@ -125,13 +126,12 @@ export default function Remote() {
           Dispatch(
             setOfflineMode({
               offlineMode: "offline",
-              boothDetails: result.jsonBoothDetailsResult?.result,
-              isDailyModeResult: result.jsonIsDailyModeResult?.result,
-              zonesettingResult: result.jsonZonesettingResult?.result,
+              boothDetails: result.jsonBoothDetailsResult,
+              isDailyModeResult: result.jsonIsDailyModeResult,
+              zonesettingResult: result.jsonZonesettingResult,
             })
           );
-          console.log('offlineData', offlineMode)
-          console.log(boothActivity.hasInterConnection)
+
           const payload = {
             price: 0,
             units: 1,
@@ -148,20 +148,20 @@ export default function Remote() {
 
           if (!isCorporateOrderPresent) {
             console.log("CorporateOrder called*********")
-            // hubConnection
-            // .invoke("SendCommandToWinClient", {
-            //   ActionToPerform: "CorporateOrder",
-            //   authToken: sessionStorage.getItem("authToken"),
-            //   corporateOrderDto: payload,
-            // })
-            // .catch((err) => console.error("ERROR" + err));
+            hubConnection
+            .invoke("SendCommandToWinClient", {
+              ActionToPerform: "CorporateOrder",
+              authToken: sessionStorage.getItem("authToken"),
+              corporateOrderDto: payload,
+            })
+            .catch((err) => console.error("ERROR" + err));
             // setTimeout(() => {
-              console.log("GetCorporateOrder called*********")
-              hubConnection
-              .invoke("SendCommandToWinClient", {
-                ActionToPerform: "GetCorporateOrder",
-              })
-              .catch((err) => console.error("ERROR" + err));
+              // console.log("GetCorporateOrder called*********")
+              // hubConnection
+              // .invoke("SendCommandToWinClient", {
+              //   ActionToPerform: "GetCorporateOrder",
+              // })
+              // .catch((err) => console.error("ERROR" + err));
             // }, 60000);
           }
         } else if (
@@ -172,11 +172,12 @@ export default function Remote() {
           Dispatch(setOfflineMode({ offlineMode: "online" }));
         }
 
-        if (result.actionToPerform === "CorporateOrder") {
-          console.log('CorporateOrder',result);
+        if (result.actionToPerform === "GetCorporateOrder") {
+          console.log('GetCorporateOrder',result);
           
           localStorage.setItem("isCorporateOrderPresent", true);
-          localStorage.setItem('JsonCorporateOrderData', JSON.stringify(result.jsonCorporateOrderResult?.result));
+          console.log(result.jsonCorporateOrderResult)
+          localStorage.setItem('JsonCorporateOrderData', JSON.stringify(result.jsonCorporateOrderResult));
         }
 
         if (result.actionToPerform === "onError") {
@@ -597,10 +598,21 @@ export default function Remote() {
     }
     command.customLightSettings = [selectedZone];
     console.log("saveSyncData", command);
-    if(offlineMode=='online'){
+    if (offlineMode==='offline') {
+      hubConnection
+          .invoke("SendCommandToWinClient", command)
+          .catch((err) => console.error("ERROR" + err));
+        sendLog({
+          LogMsg: `Submitting session. SessionId:${sessionInfo.inviteInfo.sessionId}`,
+          LogType: "success",
+        });
+        Dispatch(setSessionInfo({ sessionSubmitting: true }));
+    }
+    if (offlineMode==='online') {
+      
     validateSession(sessionInfo.inviteInfo.sessionId)
       .then((res) => {
-        console.log("update1");
+        console.log("update1")
         return updateSession(conducted_Session);
       })
       .then(() => {
@@ -612,6 +624,7 @@ export default function Remote() {
           LogType: "success",
         });
         Dispatch(setSessionInfo({ sessionSubmitting: true }));
+
       })
       .catch((er) => {
         console.log("err", er);

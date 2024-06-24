@@ -64,12 +64,6 @@ const InactivityModal = ({ onCheckCamera }) => {
     };
   }, []);
 
-  console.log('connectivity ',
-    boothActivity.hasInterConnection, offlineMode)
-  console.log('connectivity2 ',
-    boothActivity.isInactive ||
-    !boothActivity.isCameraConnected ||
-    (!boothActivity.hasInterConnection && offlineMode==="online"))
 
   return (
     <>
