@@ -1,7 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
-  offlineMode: "idle",
+  offlineMode: "online",
   boothDetails: {},
   authTokenModeResult: {},
   isDailyModeResult: {},

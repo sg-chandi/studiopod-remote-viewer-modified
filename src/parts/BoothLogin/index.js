@@ -140,7 +140,7 @@ const BoothLogin = ({ sendLog, handleBoothLoginCommand, sendCommandtoHub }) => {
       if (offlineMode == "idle") return;
 
       if (offlineMode == "offline") {
-        const authToken = sessionStorage.getItem("authToken");
+        const authToken = localStorage.getItem("authToken");
         const res = {
           data: {
             id_token: authToken,
@@ -148,14 +148,14 @@ const BoothLogin = ({ sendLog, handleBoothLoginCommand, sendCommandtoHub }) => {
         };
         console.log("authToken ", authToken);
         authenticateDetails(res, authToken);
-         sessionStorage.setItem("authToken", authToken);
+         localStorage.setItem("authToken", authToken);
       } else if (offlineMode == "online") {
         authenticate(_email || email, _password || password)
           .then((res) => {
             //send command to hub for authentication in offline mode
             console.log("res ", res);
             if (res.data?.id_token) {
-              sessionStorage.setItem("authToken", res.data?.id_token);
+              localStorage.setItem("authToken", res.data?.id_token);
               sendCommandtoHub({
                 ActionToPerform: "OfflineAuthenticate",
                 authToken: res.data?.id_token,

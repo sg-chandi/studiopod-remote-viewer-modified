@@ -90,6 +90,10 @@ export default function Remote() {
           })
           .catch((err) => console.error("ERROR" + err));
 
+          console.log("IsBoothOffline", {
+            ActionToPerform: "IsBoothOffline",
+          });
+
         hubConnection
           .invoke("SendCommandToWinClient", {
             ...hubCommendRef.current,
@@ -114,7 +118,7 @@ export default function Remote() {
       });
 
       hubConnection.on("onWebCommandReceived", (result) => {
-        // console.log("getting data ", result);
+        console.log("getting data ", result);
 
         if (
           result.actionToPerform === "IsBoothOffline" &&
@@ -151,7 +155,7 @@ export default function Remote() {
             hubConnection
             .invoke("SendCommandToWinClient", {
               ActionToPerform: "CorporateOrder",
-              authToken: sessionStorage.getItem("authToken"),
+              authToken: localStorage.getItem("authToken"),
               corporateOrderDto: payload,
             })
             .catch((err) => console.error("ERROR" + err));
@@ -591,6 +595,9 @@ export default function Remote() {
     command.PhotoPresetId = null;
     command.Remote = 9;
     command.Viewer = 4;
+    command.UserEmail = userInfo.userEmail;
+    command.Name = userInfo.userName;
+    // command.InviteId =sessionInfo.inviteInfo.inviteId;
     console.log("userInfo.phone", userInfo.phone);
     console.log("userInfo", userInfo);
     if (userInfo.phone != "") {
