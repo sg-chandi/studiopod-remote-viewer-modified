@@ -71,3 +71,5 @@ export const TAX_DETAIL = API_BASEURL + "/TaxDetail/GetTaxDetail/0";
 
 export const BOOTH_DETAILS = (userId) =>
   API_BASEURL + `/users/GetBoothByUserId?UserId=${userId}`;
+
+export const OFFLINE_DAILY =  API_BASEURL+`/corporate-orders/offlinedaily`;

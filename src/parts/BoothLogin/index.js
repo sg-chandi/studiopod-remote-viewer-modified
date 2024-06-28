@@ -25,7 +25,7 @@ import { setLoading } from "state/reducers/boothInfo";
 import { clearLocalStorageData } from "helper/func";
 import * as signalR from "@microsoft/signalr";
 import { SIGNAL_R_CONNECTION } from "service/endpoints";
-import offlineMode, { setOfflineMode } from "state/reducers/offlineMode";
+import offlineMode, { setAuthToken, setOfflineMode } from "state/reducers/offlineMode";
 import { setHubConnectionData } from "state/reducers/hubConnection";
 
 const BoothLogin = ({ sendLog, handleBoothLoginCommand, sendCommandtoHub }) => {
@@ -43,6 +43,7 @@ const BoothLogin = ({ sendLog, handleBoothLoginCommand, sendCommandtoHub }) => {
   const Dispatch = useDispatch();
   const offlineMode = useSelector((state) => state.offline.offlineMode);
   const offlineModeData = useSelector((state) => state.offline);
+  const authToken = useSelector((state) => state.offline.authToken);
   console.log("offlineMode ", offlineMode);
 
   const handleEmailChange = useCallback((value) => {
@@ -148,7 +149,7 @@ const BoothLogin = ({ sendLog, handleBoothLoginCommand, sendCommandtoHub }) => {
         };
         console.log("authToken ", authToken);
         authenticateDetails(res, authToken);
-         localStorage.setItem("authToken", authToken);
+        localStorage.setItem("authToken", authToken);
       } else if (offlineMode == "online") {
         authenticate(_email || email, _password || password)
           .then((res) => {
@@ -156,18 +157,24 @@ const BoothLogin = ({ sendLog, handleBoothLoginCommand, sendCommandtoHub }) => {
             console.log("res ", res);
             if (res.data?.id_token) {
               localStorage.setItem("authToken", res.data?.id_token);
-              sendCommandtoHub({
-                ActionToPerform: "OfflineAuthenticate",
-                authToken: res.data?.id_token,
-              });
-              sendCommandtoHub({
-                ActionToPerform: "IsBoothInDailyMode",
-                authToken: res.data?.id_token,
-              });
-              sendCommandtoHub({
-                ActionToPerform: "StoreZonesetting",
-                authToken: res.data?.id_token,
-              });
+              const token = localStorage.getItem("authToken");
+              console.log("authToken ", token);
+              Dispatch(setAuthToken(token));
+              console.log("Token ", res?.data.id_token);
+                // setTimeout(() => {
+                // sendCommandtoHub({
+                //   ActionToPerform: "OfflineAuthenticate",
+                //   authToken: res.data?.id_token,
+                // });
+                // sendCommandtoHub({
+                //   ActionToPerform: "IsBoothInDailyMode",
+                //   authToken: res.data?.id_token,
+                // });
+                // sendCommandtoHub({
+                //   ActionToPerform: "StoreZonesetting",
+                //   authToken: res.data?.id_token,
+                // });
+              // }, 10000);
 
               authenticateDetails(res, res.data.id_token);
             } else {
@@ -201,8 +208,25 @@ const BoothLogin = ({ sendLog, handleBoothLoginCommand, sendCommandtoHub }) => {
           });
       }
     },
-    [email, password, Dispatch, clearLogin, sendLog, offlineMode]
+    [email,offlineMode, password, Dispatch, clearLogin, sendLog]
   );
+
+  useEffect(() => {
+    console.log('token ',authToken)
+    if (!authToken) return;
+    sendCommandtoHub({
+      ActionToPerform: "OfflineAuthenticate",
+      authToken: authToken,
+    });
+    // sendCommandtoHub({
+    //   ActionToPerform: "IsBoothInDailyMode",
+    //   authToken: authToken,
+    // });
+    // sendCommandtoHub({
+    //   ActionToPerform: "StoreZonesetting",
+    //   authToken: authToken,
+    // });
+  }, [authToken,handleSubmit, sendCommandtoHub,offlineMode]);
 
   useEffect(() => {
     //get booth data
@@ -225,7 +249,7 @@ const BoothLogin = ({ sendLog, handleBoothLoginCommand, sendCommandtoHub }) => {
             const boothDetails = await getBoothDetails(boothAuth.boothUserId);
             sendCommandtoHub({
               ActionToPerform: "StoreBoothByUserId",
-              UserId: boothAuth.boothUserId,
+              JsonInput: JSON.stringify( boothDetails.data)
             });
 
             boothDetailsData = boothDetails.data;
@@ -252,9 +276,13 @@ const BoothLogin = ({ sendLog, handleBoothLoginCommand, sendCommandtoHub }) => {
             };
           } else if (offlineMode == "online") {
             check_booth_mode = await checkBoothMode();
+            sendCommandtoHub({
+              ActionToPerform: "IsBoothInDailyMode",
+              JsonInput: JSON.stringify(check_booth_mode?.data)
+            });
           }
 
-          console.log("boothmode***** ",offlineModeData)
+          console.log("boothmode***** ", offlineModeData);
 
           Dispatch(
             setBoothMode({

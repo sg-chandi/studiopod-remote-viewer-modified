@@ -51,6 +51,7 @@ const SessionContext = ({
   onPresetFetched,
   sendLog,
   onPageChange,
+  sendCommandtoHub,
 }) => {
   const userData = useSelector((state) => state.userInfo);
   const sessionInfo = useSelector((state) => state.sessionInfo);
@@ -127,6 +128,10 @@ const SessionContext = ({
           if (res.status !== 204) {
             if (res.data) {
               // console.log("Booth res.data Set");
+              sendCommandtoHub({
+                ActionToPerform: "StoreZonesetting",
+                JsonInput: JSON.stringify(res.data),
+              });
               const removeUnused = [];
               res.data?.zone.forEach((r) => {
                 const validData = [
@@ -315,9 +320,10 @@ const SessionContext = ({
     );
     console.log("isCorporateOrderPresent ", isCorporateOrderPresent);
     if (offlineMode == "offline") {
-      // if (!isCorporateOrderPresent) {
-      //   sendCommandtoHub({ ActionToPerform: "GetCorporateOrder" });
-      // }
+      if (!isCorporateOrderPresent) {
+        Dispatch(setRemotePage(22));
+        return;
+      }
       const JsonCorporateOrderData = localStorage.getItem(
         "JsonCorporateOrderData"
       );
@@ -343,10 +349,10 @@ const SessionContext = ({
         Dispatch(setSessionInfo({ orderFetched: true }));
         //set the rest of element in array
         const restOfCorporateOrderData = corporateOrderData.slice(1);
+        console.log('corporateDataLength ',restOfCorporateOrderData.length)
         if (restOfCorporateOrderData.length == 0) {
           localStorage.removeItem("isCorporateOrderPresent");
-          localStorage.removeItem("JsonCorporateOrderData");
-          Dispatch(setRemotePage(22));
+          localStorage.setItem("isOfflineClicked", null);
         } else {
           localStorage.setItem(
             "JsonCorporateOrderData",

@@ -24,7 +24,12 @@ import {
 import offlineMode from "state/reducers/offlineMode";
 // default mode
 
-export default function UserLogin({ onCheckCamera, onPageChange, sendLog ,sendCommandtoHub}) {
+export default function UserLogin({
+  onCheckCamera,
+  onPageChange,
+  sendLog,
+  sendCommandtoHub,
+}) {
   const userData = useSelector((state) => state.userInfo);
   const boothInfo = useSelector((state) => state.booth.info);
   // const sessionInfo = useSelector((state) => state.sessionInfo);
@@ -38,6 +43,7 @@ export default function UserLogin({ onCheckCamera, onPageChange, sendLog ,sendCo
   const [nameFocused, setNameFocused] = useState(false);
   const [loading, setLocalLoading] = useState(false);
   const [selectedCorporate, setSelectedCorporate] = useState(null);
+  const offlineMode = useSelector((state) => state.offline.offlineMode);
   const submitName = () => {
     setShoNamePage(false);
   };
@@ -47,6 +53,24 @@ export default function UserLogin({ onCheckCamera, onPageChange, sendLog ,sendCo
   useEffect(() => {
     onCheckCamera();
   }, []);
+
+  // useEffect(() => {
+  //   const authToken = localStorage.getItem("authToken");
+  //   if (!authToken) return;
+  //   if (offlineMode != "online") return;
+  //   sendCommandtoHub({
+  //     ActionToPerform: "OfflineAuthenticate",
+  //     authToken: authToken,
+  //   });
+  //   sendCommandtoHub({
+  //     ActionToPerform: "IsBoothInDailyMode",
+  //     authToken: authToken,
+  //   });
+  //   sendCommandtoHub({
+  //     ActionToPerform: "StoreZonesetting",
+  //     authToken: authToken,
+  //   });
+  // }, [sendCommandtoHub]);
 
   const handleLogin = () => {
     const name = userData.userName;
@@ -61,10 +85,10 @@ export default function UserLogin({ onCheckCamera, onPageChange, sendLog ,sendCo
       });
       localStorage.setItem("userEmail", email);
       localStorage.setItem("userName", name);
-      console.log(boothInfo)
+      console.log(boothInfo);
       if (boothInfo.isDailyMode) {
-        createDailyModeOrder(name, email,sendCommandtoHub);
-        console.log('corporateOrderData',localStorage.getItem('JsonCorporateOrderData')?.length)
+        createDailyModeOrder(name, email, sendCommandtoHub);
+        
       } else {
         checkAvailableClients(name, email)
           .then((res) => {
@@ -114,7 +138,7 @@ export default function UserLogin({ onCheckCamera, onPageChange, sendLog ,sendCo
     setSelectedCorporate(client.id);
   };
   const handleSelectCorporateClient = async (corp) => {
-    if(!selectedCorporate){
+    if (!selectedCorporate) {
       Dispatch(setUserLoggedIn(true));
       Dispatch(
         setSessionInfo({
@@ -122,9 +146,11 @@ export default function UserLogin({ onCheckCamera, onPageChange, sendLog ,sendCo
           selectedBoothID: corp.boothId,
         })
       );
-    }else{
-      console.log("selectedCorporate",selectedCorporate);
-      const found = availableCorporateInvites.find(item=>item.id ==selectedCorporate)
+    } else {
+      console.log("selectedCorporate", selectedCorporate);
+      const found = availableCorporateInvites.find(
+        (item) => item.id == selectedCorporate
+      );
       Dispatch(setUserLoggedIn(true));
       Dispatch(
         setSessionInfo({
@@ -133,7 +159,6 @@ export default function UserLogin({ onCheckCamera, onPageChange, sendLog ,sendCo
         })
       );
     }
-    
   };
   return (
     <div className="name_page">
@@ -237,9 +262,11 @@ export default function UserLogin({ onCheckCamera, onPageChange, sendLog ,sendCo
           <div className="corporate_row mb-5">
             {availableCorporateInvites.map((item, index) => (
               <div
-                className={`box ${item.id === selectedCorporate?"select":''}`}
+                className={`box ${
+                  item.id === selectedCorporate ? "select" : ""
+                }`}
                 key={item.id}
-                onClick={() =>handleCorporateSelect(item)}
+                onClick={() => handleCorporateSelect(item)}
               >
                 <div className="logo">
                   <img src={item.logoDB ? item.logoDB : ""} alt="holaImage" />

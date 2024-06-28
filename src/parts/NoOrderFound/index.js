@@ -9,6 +9,7 @@ import { setSessionInfo,  } from "state/reducers/sessionInfo";
 const NoOrderFound = ({onPageChange,sendLog}) => {
     const Dispatch = useDispatch()
     const handleBack = ()=>{
+      localStorage.setItem('mode','idle')
       clearLocalStorageData()
       sendLog({
         LogMsg: `Not invited user. `,
