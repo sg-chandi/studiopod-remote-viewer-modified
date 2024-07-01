@@ -30,6 +30,7 @@ const initialState = {
     retakeAllowed: null,
     clickAllowed: null,
     isUnlimited:null,
+    touchupServicePrice:null,
   },
   presetAvailable:{},
   presetActionID:null,

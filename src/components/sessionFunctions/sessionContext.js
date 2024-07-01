@@ -490,6 +490,7 @@ const SessionContext = ({
           clickAllowed: clickAllowed,
           selectedCorporateClientID: data.corporateClientDto.id,
           isUnlimited: data.corporateClientDto.unlimited,
+          touchupServicePrice:data.corporateOrder.touchupServicePrice
         })
       );
       sessionCorporateId = data.corporateClientDto.id;
@@ -647,7 +648,7 @@ const SessionContext = ({
       validateSession(sessionInfo.inviteInfo.sessionId)
         .then((response) => {
           const data = response.data;
-          console.log(data.corporateClientDto.unlimited);
+          console.log('corporateData',data.corporateClientDto.unlimited);
           sessionValidation(data);
         })
         .catch((er) => {

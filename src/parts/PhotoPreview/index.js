@@ -100,7 +100,7 @@ export default function PhotoPreview({ onSubmit, sendLog }) {
 
   const handleSubmitSession = () => {
     console.log(sessionInfo.isUnlimited)
-    if(sessionInfo.isUnlimited){
+    if(sessionInfo.isUnlimited || sessionInfo.touchupServicePrice){
       setShowFavoriteDialog(true);
       return;
     }
