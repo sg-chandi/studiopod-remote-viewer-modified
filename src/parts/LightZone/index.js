@@ -25,6 +25,7 @@ const LightZone = ({ onPageChange, changeLightZone,handleOffLight }) => {
     (obj) => obj.key === selectedPreviewZone?.key
   );
   const Dispatch = useDispatch();
+  console.log(lightZone)
 
   const getAndSetLightStep = (zone, isSubmit) => {
     if (lightZone.allOptions.length <= lightStep + 1 && isSubmit) {

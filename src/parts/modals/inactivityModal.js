@@ -4,7 +4,6 @@ import DialogContent from "@mui/material/DialogContent";
 import { UniOn } from "assets/images";
 import { useDispatch, useSelector } from "react-redux";
 import { setBoothActivity } from "state/reducers/boothInfo";
-import offlineMode, { setOfflineMode } from "state/reducers/offlineMode";
 
 const InactivityModal = ({ onCheckCamera }) => {
   const boothActivity = useSelector((state) => state.booth.activity);

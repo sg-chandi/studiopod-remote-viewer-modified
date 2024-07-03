@@ -28,6 +28,7 @@ export default function PodInstruction({ onPageChange }) {
       onPageChange(6);
     }
   };
+  console.log('gridstep ',gridStep)
   useEffect(() => {
     setTimeout(() => {
       Dispatch(setGridStep(1));

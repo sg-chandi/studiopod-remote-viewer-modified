@@ -30,7 +30,7 @@ import { Backdrop } from "@mui/material";
 import CircularProgress from "@mui/material/CircularProgress";
 import NoOrderFound from "parts/NoOrderFound";
 import { useNavigate } from "react-router-dom";
-import offlineMode, { setOfflineMode } from "state/reducers/offlineMode";
+import offlineMode, { setOfflineMode, setOfflineModeData } from "state/reducers/offlineMode";
 import { setHubConnectionData } from "state/reducers/hubConnection";
 
 export default function Remote() {
@@ -59,6 +59,9 @@ export default function Remote() {
   const [hubConnected, setHubConnected] = useState(false);
   const offlineMode = useSelector((state) => state.offline.offlineMode);
   const offlineModeData = useSelector((state) => state.offline);
+  const [localDataPresent, setLocalDataPresent] = useState(false);
+  const authToken = useSelector((state) => state.offline.authToken);
+
 
   useEffect(() => {
     let connectSignalR = () => {
@@ -78,6 +81,7 @@ export default function Remote() {
 
   useEffect(() => {
     if (hubConnection == null || hubConnected) return;
+    if (!authToken ) return;
     console.log(
       "connect ******************************************************************"
     );
@@ -92,6 +96,15 @@ export default function Remote() {
           ActionToPerform: "IsBoothOffline",
         })
         .catch((err) => console.error("ERROR" + err));
+
+      const isFirstOpen = localStorage.getItem("isFirstOpen");
+      if (!isFirstOpen) {
+        console.log(
+          "first time application open***********************************"
+        );
+        localStorage.setItem("firstTimeOpen", true);
+        localStorage.setItem("isOfflineClicked", false);
+      }
 
       console.log("IsBoothOffline", {
         ActionToPerform: "IsBoothOffline",
@@ -121,7 +134,7 @@ export default function Remote() {
     });
 
     hubConnection.on("onWebCommandReceived", (result) => {
-      // console.log("getting data ", result);
+      console.log("getting data ", result);
 
       if (
         result.actionToPerform === "IsBoothOffline" &&
@@ -131,10 +144,14 @@ export default function Remote() {
         console.log(
           "offline changing*****************************************"
         );
-        localStorage.setItem('mode','offline')
+        localStorage.setItem("mode", "offline");
         Dispatch(
           setOfflineMode({
             offlineMode: "offline",
+          })
+        );
+        Dispatch(
+          setOfflineModeData({
             boothDetails: result.jsonBoothDetailsResult,
             isDailyModeResult: result.jsonIsDailyModeResult,
             zonesettingResult: result.jsonZonesettingResult,
@@ -145,7 +162,7 @@ export default function Remote() {
         );
 
         let isOfflineClicked = localStorage.getItem("isOfflineClicked");
-        if ( isOfflineClicked == "false") {
+        if (isOfflineClicked == "false") {
           localStorage.setItem("isOfflineClicked", true);
         }
         isOfflineClicked = localStorage.getItem("isOfflineClicked");
@@ -156,9 +173,9 @@ export default function Remote() {
         console.log("isCorporateOrderPresent", isCorporateOrderPresent);
         if (!isCorporateOrderPresent && isOfflineClicked == "true") {
           console.log("CorporateOrder called*********");
-          const token = localStorage.getItem("authToken");
-          console.log("authToken received", token);
-          getOfflineDaily({ AuthToken: token })
+          // const token =JSON.parse(localStorage.getItem("authToken"));
+          console.log("authToken received", authToken);
+          getOfflineDaily({ AuthToken: authToken })
             .then((res) => {
               console.log(
                 "Corporateorder finish calling******************************"
@@ -178,12 +195,12 @@ export default function Remote() {
         result.isOffline === false
       ) {
         console.log("online changing");
-          localStorage.setItem("isOfflineClicked", false);
+        localStorage.setItem("isOfflineClicked", false);
         console.log(
           "isOfflineClicked ",
           localStorage.getItem("isOfflineClicked")
         );
-        localStorage.setItem('mode','online')
+        localStorage.setItem("mode", "online");
         Dispatch(setOfflineMode({ offlineMode: "online" }));
         localStorage.removeItem("isCorporateOrderPresent");
       }
@@ -223,7 +240,7 @@ export default function Remote() {
         hubConnection
           .invoke("SendCommandToWinClient", comm)
           .catch((err) => console.error("ERROR" + err));
-          console.log("LogSave",comm)
+        console.log("LogSave", comm);
       }
 
       if (result.actionToPerform === "OnImageClicked") {
@@ -268,7 +285,7 @@ export default function Remote() {
         hubConnection
           .invoke("SendCommandToWinClient", comm)
           .catch((err) => console.error("ERROR" + err));
-          console.log("LogSave",comm)
+        console.log("LogSave", comm);
 
         const afterClickCommand = {
           ...hubCommendRef.current,
@@ -307,7 +324,7 @@ export default function Remote() {
         hubConnection
           .invoke("SendCommandToWinClient", comm)
           .catch((err) => console.error("ERROR" + err));
-          console.log("LogSave",comm)
+        console.log("LogSave", comm);
         console.log("onCheckCamera");
         if (result.imageData === "True") {
           Dispatch(setBoothActivity({ isCameraConnected: true }));
@@ -316,7 +333,7 @@ export default function Remote() {
         }
       }
     });
-  }, [hubConnection, Dispatch]);
+  }, [hubConnection, Dispatch, authToken]);
 
   const sendLog = useCallback(
     ({
@@ -569,7 +586,8 @@ export default function Remote() {
   const _handleSubmitRef = useRef();
   const handleSubmit = () => {
     Dispatch(setRemotePage(12));
-    localStorage.setItem('mode','idle')
+    const idle = JSON.stringify('idle')
+    localStorage.setItem("mode", idle);
     handlePageChange(12);
     console.log("total photo clicked", sessionInfo.photoClicked);
     if (sessionInfo.photoClicked == 0) {

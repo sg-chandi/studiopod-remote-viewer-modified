@@ -141,7 +141,7 @@ const BoothLogin = ({ sendLog, handleBoothLoginCommand, sendCommandtoHub }) => {
       if (offlineMode == "idle") return;
 
       if (offlineMode == "offline") {
-        const authToken = localStorage.getItem("authToken");
+        if (!authToken) return
         const res = {
           data: {
             id_token: authToken,
@@ -164,7 +164,7 @@ const BoothLogin = ({ sendLog, handleBoothLoginCommand, sendCommandtoHub }) => {
                 // setTimeout(() => {
                 // sendCommandtoHub({
                 //   ActionToPerform: "OfflineAuthenticate",
-                //   authToken: res.data?.id_token,
+                //   authToken: res.data?.id_token,boo
                 // });
                 // sendCommandtoHub({
                 //   ActionToPerform: "IsBoothInDailyMode",
@@ -208,7 +208,7 @@ const BoothLogin = ({ sendLog, handleBoothLoginCommand, sendCommandtoHub }) => {
           });
       }
     },
-    [email,offlineMode, password, Dispatch, clearLogin, sendLog]
+    [email,offlineMode, password, Dispatch, clearLogin, sendLog,authToken]
   );
 
   useEffect(() => {
@@ -243,27 +243,27 @@ const BoothLogin = ({ sendLog, handleBoothLoginCommand, sendCommandtoHub }) => {
           if (offlineMode === "idle") return;
 
           if (offlineMode === "offline") {
-            console.log("offline booth details ", offlineModeData.boothDetails);
+            console.log("offline booth details ", offlineModeData?.boothDetails);
             boothDetailsData = offlineModeData.boothDetails;
           } else if (offlineMode === "online") {
-            const boothDetails = await getBoothDetails(boothAuth.boothUserId);
+            const boothDetails = await getBoothDetails(boothAuth?.boothUserId);
             sendCommandtoHub({
               ActionToPerform: "StoreBoothByUserId",
               JsonInput: JSON.stringify( boothDetails.data)
             });
 
-            boothDetailsData = boothDetails.data;
+            boothDetailsData = boothDetails?.data;
           }
-          console.log(boothDetailsData);
+          console.log('boothdetailsdata',boothDetailsData);
           if (boothDetailsData) {
             Dispatch(
               setBoothInfo({
-                boothName: boothDetailsData.name,
-                boothId: boothDetailsData.id,
+                boothName: boothDetailsData?.name,
+                boothId: boothDetailsData?.id,
               })
             );
-            localStorage.setItem("BoothId", boothDetailsData.id);
-            localStorage.setItem("BoothName", boothDetailsData.name);
+            localStorage.setItem("BoothId", boothDetailsData?.id);
+            localStorage.setItem("BoothName", boothDetailsData?.name);
           }
 
           if (offlineMode == "offline") {
@@ -310,13 +310,13 @@ const BoothLogin = ({ sendLog, handleBoothLoginCommand, sendCommandtoHub }) => {
           setAutoLogin(false);
           Dispatch(setLoading(false));
           console.log("-------------------");
-          handleBoothLoginCommand(boothDetailsData.id, boothDetailsData.name);
+          handleBoothLoginCommand(boothDetailsData?.id, boothDetailsData?.name);
           sendLog({
-            LogMsg: `Booth data fetched.  BoothId: ${boothDetailsData.id} `,
+            LogMsg: `Booth data fetched.  BoothId: ${boothDetailsData?.id} `,
             LogType: "success",
             BoothMode: mode,
-            BoothId: boothDetailsData.id,
-            BoothName: boothDetailsData.name,
+            BoothId: boothDetailsData?.id,
+            BoothName: boothDetailsData?.name,
           });
         } catch (error) {
           console.log("er", error);
