@@ -81,7 +81,6 @@ export default function Remote() {
 
   useEffect(() => {
     if (hubConnection == null || hubConnected) return;
-    if (!authToken ) return;
     console.log(
       "connect ******************************************************************"
     );
@@ -134,7 +133,7 @@ export default function Remote() {
     });
 
     hubConnection.on("onWebCommandReceived", (result) => {
-      console.log("getting data ", result);
+      // console.log("getting data ", result);
 
       if (
         result.actionToPerform === "IsBoothOffline" &&
