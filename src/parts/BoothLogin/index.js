@@ -276,6 +276,15 @@ const BoothLogin = ({ sendLog, handleBoothLoginCommand, sendCommandtoHub }) => {
             };
           } else if (offlineMode == "online") {
             check_booth_mode = await checkBoothMode();
+            if (!check_booth_mode?.data || check_booth_mode?.data?.length==0) {
+              const input = {
+                isDaily:false,isClub:false
+              }
+              sendCommandtoHub({
+                ActionToPerform: "IsBoothInDailyMode",
+                JsonInput: input
+              });
+            }
             sendCommandtoHub({
               ActionToPerform: "IsBoothInDailyMode",
               JsonInput: JSON.stringify(check_booth_mode?.data)

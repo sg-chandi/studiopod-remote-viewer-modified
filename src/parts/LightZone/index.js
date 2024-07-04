@@ -79,7 +79,8 @@ const LightZone = ({ onPageChange, changeLightZone,handleOffLight }) => {
             let notfound = false;
             switch (zone?.key) {
               case "Default":
-                name = "Default Light";
+                name = "Default";
+                // name = "Default Light";
                 break;
               case "Shadow1":
                 name = "Shadow 1";
