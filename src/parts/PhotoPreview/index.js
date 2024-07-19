@@ -7,7 +7,11 @@ import { motion } from "framer-motion";
 import RetakePhoto from "./RetakePhoto";
 import Footer from "components/footer/footer";
 import { useDispatch, useSelector } from "react-redux";
-import { setPhotoPage, setPhotoInfo } from "state/reducers/photosInfo";
+import {
+  setPhotoPage,
+  setPhotoInfo,
+  setIsFavoriteOpen,
+} from "state/reducers/photosInfo";
 import SMSDialogue from "./SMSDialogue";
 import Header from "components/header/header";
 import FavoriteHeadShots from "../PhotoPreview/FavoriteHeadshots";
@@ -33,6 +37,9 @@ export default function PhotoPreview({ onSubmit, sendLog }) {
     ActivePosition: 0,
     // PhotoPresetId:null
   });
+
+  console.log("modalOption ", photoInfo.modalOption);
+  console.log("showFavoriteDialog ", showFavoriteDialog);
 
   useEffect(() => {
     let connectSignalR = () => {
@@ -92,16 +99,18 @@ export default function PhotoPreview({ onSubmit, sendLog }) {
           ...hubCommendRef.current,
           ActionToPerform: "SaveSessionCompletedInfo",
         });
-
       });
       setSMSModal(true);
     }
   };
 
   const handleSubmitSession = () => {
-    console.log(sessionInfo.isUnlimited)
-    if(sessionInfo.isUnlimited || sessionInfo.touchupServicePrice){
+    if (sessionInfo.isUnlimited || sessionInfo.touchupServicePrice) {
+      console.log(photoInfo.isFavouriteOpen);
       setShowFavoriteDialog(true);
+      if (!photoInfo.isFavouriteOpen) {
+        Dispatch(setIsFavoriteOpen(true));
+      }
       return;
     }
     Dispatch(setPhotoPage(3));
@@ -122,12 +131,7 @@ export default function PhotoPreview({ onSubmit, sendLog }) {
   };
 
   useEffect(() => {
-    if (
-      photoInfo.modalOption === "retake" ||
-      photoInfo.modalOption === "favorite"
-    ) {
-      setShowFavoriteDialog(false);
-    }
+    
 
     if (photoInfo.photoPageStep !== 1) {
       setDisableCompleteSession(true);
@@ -135,6 +139,15 @@ export default function PhotoPreview({ onSubmit, sendLog }) {
       setDisableCompleteSession(false);
     }
   }, [photoInfo]);
+
+  useEffect(()=>{
+    if (
+      photoInfo.modalOption === "retake" ||
+      photoInfo.modalOption === "favorite"
+    ) {
+      setShowFavoriteDialog(false);
+    }
+  },[photoInfo.modalOption])
 
   return (
     <>

@@ -8,6 +8,7 @@ import {
   setPhotoInfo,
   setIsRetaking,
   setPhotoPage,
+  setIsFavoriteOpen,
 } from "state/reducers/photosInfo";
 
 export default function SelectedImagePreview() {
@@ -21,6 +22,9 @@ export default function SelectedImagePreview() {
     sessionInfo.initiatedSession.coupon
   );
   const onBack = () => {
+    if (photoInfo.isFavouriteOpen) {
+      Dispatch(setIsFavoriteOpen(false));
+    }
     Dispatch(
       setPhotoInfo({
         photoPageStep: 1,

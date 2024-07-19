@@ -6,7 +6,8 @@ const initialState = {
   openPhotoPreview: false,
   isRetaking: false,
   modalOption:"retake",
-  favorite:0
+  favorite:0,
+  isFavouriteOpen:false
   // retake favorite endSession
 };
 
@@ -29,7 +30,9 @@ export const photoInfoReducer = createSlice({
     setSelectedPhoto: (state, { payload }) => {
       state.selectedPhoto = payload
     },
-
+    setIsFavoriteOpen:(state, { payload }) => {
+      state.isFavouriteOpen = payload
+    },
     resetState: (state) => initialState,
   },
 });
@@ -39,6 +42,7 @@ export const {
   setSelectedPhoto,
   setPhotoPage,
   resetState,
+  setIsFavoriteOpen,
   setIsRetaking
 } = photoInfoReducer.actions;
 export default photoInfoReducer.reducer;

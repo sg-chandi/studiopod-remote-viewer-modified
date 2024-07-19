@@ -332,7 +332,7 @@ export default function Remote() {
         }
       }
     });
-  }, [hubConnection, Dispatch, authToken]);
+  }, [hubConnection, Dispatch]);
 
   const sendLog = useCallback(
     ({
@@ -541,6 +541,7 @@ export default function Remote() {
     const isRetaking = photoInfo.isRetaking;
     let _sequence = sequence;
     if (isRetaking) {
+      console.log('retaking.........................')
       _sequence = parseInt(photoInfo.selectedPhoto);
       localStorage.removeItem("photoClicked");
     } else {
@@ -692,7 +693,7 @@ export default function Remote() {
           .invoke("SendCommandToWinClient", command)
           .catch((err) =>
             console.log(
-              "ERROR" + new Date().format("yyyy-mm-dd HH:MM:ss l") + err
+              "ERROR" + new Date()?.format("yyyy-mm-dd HH:MM:ss l") + err
             )
           );
         console.log("command ", command);

@@ -12,6 +12,9 @@ export default function CountingPart() {
 
   }
 
+  console.log("clickAllowed ",sessionInfo.initiatedSession.clickAllowed )
+  console.log("photoClicked ",sessionInfo.photoClicked)
+
   return (
     <>
       <div className="upper_part">
