@@ -9,6 +9,7 @@ import {
   setIsRetaking,
   setPhotoPage,
 } from "state/reducers/photosInfo";
+import { setIsFavoriteOpen } from "../../state/reducers/photosInfo";
 
 export default function SelectedImagePreview() {
   const Dispatch = useDispatch();
@@ -21,6 +22,13 @@ export default function SelectedImagePreview() {
     sessionInfo.initiatedSession.coupon
   );
   const onBack = () => {
+    if (photoInfo.isFavouriteOpen) {
+      Dispatch(setIsFavoriteOpen(false));
+      Dispatch(setPhotoInfo({
+        modalOption: "retake"
+      }))
+  
+    }
     Dispatch(
       setPhotoInfo({
         photoPageStep: 1,

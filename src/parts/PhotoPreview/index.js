@@ -14,6 +14,7 @@ import FavoriteHeadShots from "../PhotoPreview/FavoriteHeadshots";
 import { FormatQuoteRounded } from "@mui/icons-material";
 import * as signalR from "@microsoft/signalr";
 import { SIGNAL_R_CONNECTION } from "service/endpoints";
+import { setIsFavoriteOpen } from "../../state/reducers/photosInfo";
 
 export default function PhotoPreview({ onSubmit, sendLog }) {
   const [SMSModal, setSMSModal] = useState(false);
@@ -100,8 +101,11 @@ export default function PhotoPreview({ onSubmit, sendLog }) {
 
   const handleSubmitSession = () => {
     console.log(sessionInfo.isUnlimited)
-    if(sessionInfo.isUnlimited){
+    if (sessionInfo.isUnlimited || sessionInfo.touchupServicePrice) {
       setShowFavoriteDialog(true);
+      if (!photoInfo.isFavouriteOpen) {
+        Dispatch(setIsFavoriteOpen(true));
+      }
       return;
     }
     Dispatch(setPhotoPage(3));
@@ -122,19 +126,23 @@ export default function PhotoPreview({ onSubmit, sendLog }) {
   };
 
   useEffect(() => {
-    if (
-      photoInfo.modalOption === "retake" ||
-      photoInfo.modalOption === "favorite"
-    ) {
-      setShowFavoriteDialog(false);
-    }
-
     if (photoInfo.photoPageStep !== 1) {
       setDisableCompleteSession(true);
     } else {
       setDisableCompleteSession(false);
     }
   }, [photoInfo]);
+
+  
+  useEffect(()=>{
+    if (
+      photoInfo.modalOption == "retake" ||
+      photoInfo.modalOption == "favorite"
+    ) {
+      console.log(photoInfo.modalOption)
+      setShowFavoriteDialog(false);
+    }
+  },[photoInfo.modalOption])
 
   return (
     <>

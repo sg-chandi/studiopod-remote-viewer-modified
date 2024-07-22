@@ -3,12 +3,19 @@ import Button from "@mui/material/Button";
 import { useDispatch, useSelector } from "react-redux";
 import { motion } from "framer-motion";
 import { photoInfoReducer, setPhotoInfo } from "state/reducers/photosInfo";
+import { setIsFavoriteOpen } from "../../state/reducers/photosInfo";
 export default function ConfirmationModal({ onSubmit }) {
   const modalData = useSelector((state) => state.photosInfo.modalOption);
   const photoInfo = useSelector((state) => state.photosInfo);
   const photoPageStep = useSelector((state) => state.photosInfo.photoPageStep);
   const Dispatch = useDispatch();
   const cancelRetake = () => {
+    if(photoInfo.isFavouriteOpen){
+      Dispatch(setIsFavoriteOpen(false))
+      Dispatch(setPhotoInfo({
+        modalOption: "retake"
+      }))
+    }
     Dispatch(
       setPhotoInfo({
         photoPageStep: 1,

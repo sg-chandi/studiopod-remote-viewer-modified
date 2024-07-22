@@ -350,6 +350,7 @@ const SessionContext = ({
               clickAllowed: clickAllowed,
               selectedCorporateClientID: data.corporateClientDto.id,
               isUnlimited:data.corporateClientDto.unlimited,
+              touchupServicePrice:data.corporateOrder.touchupServicePrice
             })
           );
           sessionCorporateId = data.corporateClientDto.id;
