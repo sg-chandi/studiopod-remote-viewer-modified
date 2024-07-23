@@ -12,10 +12,10 @@ export default function ConfirmationModal({ onSubmit }) {
   const cancelRetake = () => {
     if(photoInfo.isFavouriteOpen){
       Dispatch(setIsFavoriteOpen(false))
-      Dispatch(setPhotoInfo({
-        modalOption: "retake"
-      }))
     }
+    Dispatch(setPhotoInfo({
+      modalOption: "retake"
+    }))
     Dispatch(
       setPhotoInfo({
         photoPageStep: 1,

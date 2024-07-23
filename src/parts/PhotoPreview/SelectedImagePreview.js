@@ -22,13 +22,14 @@ export default function SelectedImagePreview() {
     sessionInfo.initiatedSession.coupon
   );
   const onBack = () => {
+    console.log('back**********',photoInfo.isFavouriteOpen)
     if (photoInfo.isFavouriteOpen) {
       Dispatch(setIsFavoriteOpen(false));
-      Dispatch(setPhotoInfo({
-        modalOption: "retake"
-      }))
-  
+      
     }
+    Dispatch(setPhotoInfo({
+      modalOption: "retake"
+    }))
     Dispatch(
       setPhotoInfo({
         photoPageStep: 1,

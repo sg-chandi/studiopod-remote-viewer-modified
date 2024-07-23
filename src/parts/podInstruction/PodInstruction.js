@@ -200,12 +200,14 @@ export default function PodInstruction({ onPageChange }) {
         actionBtnText={"continue"}
         disableActionBtn={false}
         onClickActionBtn={() => getAndSetGridStep(gridStep + 1)}
-        btnVariant={gridStep === 4 ? "contained" : "outlined"}
-        btnClassName={
-          gridStep === 4
-            ? "filledBtn colorBtn text-capitalize"
-            : "filledBtn text-capitalize"
-        }
+        btnVariant={"contained"}
+        // btnVariant={gridStep === 4 ? "contained" : "outlined"}
+        // btnClassName={
+        //   gridStep === 4
+        //     ? "filledBtn colorBtn text-capitalize"
+        //     : "filledBtn text-capitalize"
+        // }
+        btnClassName={"filledBtn colorBtn text-capitalize"}
       />
     </div>
   );
