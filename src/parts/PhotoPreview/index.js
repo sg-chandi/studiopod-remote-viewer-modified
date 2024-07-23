@@ -25,6 +25,7 @@ export default function PhotoPreview({ onSubmit, sendLog }) {
   const [disableCompleteSession, setDisableCompleteSession] = useState(false);
   const sessionInfo = useSelector((state) => state.sessionInfo);
   const [hubConnection, setHubConnection] = useState(null);
+  const boothInfo = useSelector((state) => state.booth.info);
   const hubCommendRef = useRef({
     ActionToPerform: "viewer",
     VoucherCode: "",
@@ -93,15 +94,18 @@ export default function PhotoPreview({ onSubmit, sendLog }) {
           ...hubCommendRef.current,
           ActionToPerform: "SaveSessionCompletedInfo",
         });
-
       });
       setSMSModal(true);
     }
   };
 
   const handleSubmitSession = () => {
-    console.log(sessionInfo.isUnlimited)
-    if (sessionInfo.isUnlimited || sessionInfo.touchupServicePrice) {
+    console.log(sessionInfo.isUnlimited);
+    console.log(boothInfo.isDailyMode);
+    if (
+      (boothInfo.isDailyMode && sessionInfo.isUnlimited) ||
+      sessionInfo.touchupServicePrice
+    ) {
       setShowFavoriteDialog(true);
       if (!photoInfo.isFavouriteOpen) {
         Dispatch(setIsFavoriteOpen(true));
@@ -133,16 +137,15 @@ export default function PhotoPreview({ onSubmit, sendLog }) {
     }
   }, [photoInfo]);
 
-  
-  useEffect(()=>{
+  useEffect(() => {
     if (
       photoInfo.modalOption == "retake" ||
       photoInfo.modalOption == "favorite"
     ) {
-      console.log(photoInfo.modalOption)
+      console.log(photoInfo.modalOption);
       setShowFavoriteDialog(false);
     }
-  },[photoInfo.modalOption])
+  }, [photoInfo.modalOption]);
 
   return (
     <>
