@@ -57,7 +57,7 @@ export default function ConfirmationModal({ onSubmit }) {
           </>
         )}
       </h2>
-      <div className="button_grp">
+      <div className={photoInfo.modalOption === "favoriteNew" ? 'button_grp fav_btn_grp': 'button_grp'}>
         <Button className="secondary" onClick={cancelRetake}>
           {photoInfo.modalOption === "favoriteNew" ? "GO BACK" : "NO"}
         </Button>

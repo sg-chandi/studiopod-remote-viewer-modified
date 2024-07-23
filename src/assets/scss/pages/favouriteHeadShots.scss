@@ -1,9 +1,10 @@
 .retouchedDialog {
-    @include Dialogue(85vw, 0px);
+    @include Dialogue(100vw, 0px);
 
     .MuiDialog-paper.MuiDialog-paperScrollPaper {
         background: transparent;
         overflow: hidden;
+        margin: 0px 12px;
         .css-ypiqx9-MuiDialogContent-root{
             overflow: hidden !important;
         }
@@ -13,9 +14,9 @@
     }
     .retouch_row {
         display: grid;
-        grid-template-columns: 0.8fr 1.2fr;
+        grid-template-columns: 0.7fr 1.3fr;
         gap: 5px;
-        height: 80vh;
+        height: 78vh;
         @media (max-width: 1600px) {
             height:70vh;
         }
@@ -94,7 +95,7 @@
                 grid-template-columns: repeat(5, minmax(0, 1fr));
                 grid-template-rows: repeat(3, minmax(0, 1fr));
                 grid-gap: 0.625rem;
-                height: 60vh;
+                height: 73vh;
                 overflow: auto;
           
                 .photo {
@@ -157,4 +158,10 @@
         }
 
     }
+}
+
+.retouchedDialog {
+  .MuiModal-backdrop {
+    backdrop-filter: blur(2px);
+  }
 }
