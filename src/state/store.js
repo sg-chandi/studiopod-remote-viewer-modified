@@ -8,17 +8,21 @@ import lightZoneSetting from "./reducers/lightZoneSetting";
 import photosInfo from "./reducers/photosInfo";
 import modalInfo from "./reducers/modalInfo";
 import images from "./reducers/images";
+import offlineMode from "./reducers/offlineMode";
+import hubConnection from "./reducers/hubConnection";
 
 export const store = configureStore({
   reducer: {
     userInfo: userInfoReducer,
     steps: stepReducer,
     viewerStep: viewerStepsReducer,
-    booth:boothInfo,
-    sessionInfo:sessionInfo,
-    lightZone:lightZoneSetting,
-    photosInfo:photosInfo,
-    modalInfo:modalInfo,
-    img:images
+    booth: boothInfo,
+    sessionInfo: sessionInfo,
+    lightZone: lightZoneSetting,
+    photosInfo: photosInfo,
+    modalInfo: modalInfo,
+    img: images,
+    offline: offlineMode,
+    hub: hubConnection,
   },
 });

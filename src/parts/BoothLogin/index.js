@@ -23,8 +23,12 @@ import { curveSvg, unionSvg } from "assets/images/svg";
 import LoginImage from "assets/images/login_image.png";
 import { setLoading } from "state/reducers/boothInfo";
 import { clearLocalStorageData } from "helper/func";
+import * as signalR from "@microsoft/signalr";
+import { SIGNAL_R_CONNECTION } from "service/endpoints";
+import offlineMode, { setAuthToken, setOfflineMode } from "state/reducers/offlineMode";
+import { setHubConnectionData } from "state/reducers/hubConnection";
 
-const BoothLogin = ({ sendLog,handleBoothLoginCommand }) => {
+const BoothLogin = ({ sendLog, handleBoothLoginCommand, sendCommandtoHub }) => {
   const boothAuth = useSelector((state) => state.booth.auth);
   const [emailFocused, setEmailFocused] = useState(false);
   const [emailSubmitted, setEmailSubmitted] = useState(false);
@@ -35,8 +39,13 @@ const BoothLogin = ({ sendLog,handleBoothLoginCommand }) => {
   const [autoLoginTried, setAutoLoginTried] = useState(false);
   const [loading, setLocalLoading] = useState(false);
   const [loggedTryToken, setLoggedTryToken] = useState("idle"); //success failed
-
+  // const [hubConnection, setHubConnection] = useState(null);
   const Dispatch = useDispatch();
+  const offlineMode = useSelector((state) => state.offline.offlineMode);
+  const offlineModeData = useSelector((state) => state.offline);
+  const authToken = useSelector((state) => state.offline.authToken);
+  console.log("offlineMode ", offlineMode);
+
   const handleEmailChange = useCallback((value) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     setEmail(value);
@@ -48,9 +57,52 @@ const BoothLogin = ({ sendLog,handleBoothLoginCommand }) => {
     Dispatch(setLoading(true));
   }, []);
   const clearLogin = useCallback(() => {
-    Dispatch(resetBooth);
+    Dispatch(resetBooth());
     localStorage.clear();
   }, [Dispatch]);
+
+  const authenticateDetails = (res, token) => {
+    try {
+      const decodedToken = jwtDecode(token);
+      const boothUserId = decodedToken.unique_name;
+      // const userEmail = decodedToken.sub;
+      const roleIsBooth = isBoothRole(decodedToken.role);
+      if (!roleIsBooth) {
+        //  LOG
+        toast.error("Please login as Booth User.");
+        clearLogin();
+        sendLog({
+          LogMsg: `Booth Login failed. Wrong user. BoothEmail: ${email} `,
+          LogType: "error",
+        });
+      } else {
+        //LOGIN success LOG
+        localStorage.setItem("BootUser", JSON.stringify(res.data));
+        localStorage.setItem("BoothUserEmail", JSON.stringify(email));
+        sendLog({
+          LogMsg: `Booth Login success. BoothEmail: ${email} `,
+          LogType: "success",
+        });
+        Dispatch(
+          setBoothAuth({
+            boothEmail: email,
+            boothUserId: boothUserId,
+            token: res.data,
+            loggedIn: true,
+          })
+        );
+      }
+    } catch (error) {
+      // LOG
+      toast.error("Something is wrong. Please try again!");
+      setAutoLogin(false);
+      clearLogin();
+      sendLog({
+        LogMsg: `Booth Login failed. BoothEmail: ${email} `,
+        LogType: "error",
+      });
+    }
+  };
 
   //login from token
   useEffect(() => {
@@ -80,103 +132,166 @@ const BoothLogin = ({ sendLog,handleBoothLoginCommand }) => {
 
   //manual login
   const handleSubmit = useCallback(
-    (_email, _password) => {
+    async (_email, _password) => {
+      console.log("handlesubmit executing");
+      console.log("mode ", offlineMode);
       setLocalLoading(true);
       if ((!_email || !_password) && (!email || !password)) return;
 
-      authenticate(_email || email, _password || password)
-        .then((res) => {
-          if (res.data?.id_token) {
-            try {
-              const decodedToken = jwtDecode(res.data.id_token);
-              const boothUserId = decodedToken.unique_name;
-              // const userEmail = decodedToken.sub;
-              const roleIsBooth = isBoothRole(decodedToken.role);
-              if (!roleIsBooth) {
-                //  LOG
-                toast.error("Please login as Booth User.");
-                clearLogin();
-                sendLog({
-                  LogMsg: `Booth Login failed. Wrong user. BoothEmail: ${email} `,
-                  LogType: "error",
-                });
-              } else {
-                //LOGIN success LOG
-                localStorage.setItem("BootUser", JSON.stringify(res.data));
-                localStorage.setItem("BoothUserEmail", JSON.stringify(email));
-                sendLog({
-                  LogMsg: `Booth Login success. BoothEmail: ${email} `,
-                  LogType: "success",
-                });
-                Dispatch(
-                  setBoothAuth({
-                    boothEmail: email,
-                    boothUserId: boothUserId,
-                    token: res.data,
-                    loggedIn: true,
-                  })
-                );
-              }
-            } catch (error) {
-              // LOG
-              toast.error("Something is wrong. Please try again!");
-              setAutoLogin(false);
-              clearLogin();
+      if (offlineMode == "idle") return;
+
+      if (offlineMode == "offline") {
+        if (!authToken) return
+        const res = {
+          data: {
+            id_token: authToken,
+          },
+        };
+        console.log("authToken ", authToken);
+        authenticateDetails(res, authToken);
+        localStorage.setItem("authToken", authToken);
+      } else if (offlineMode == "online") {
+        authenticate(_email || email, _password || password)
+          .then((res) => {
+            //send command to hub for authentication in offline mode
+            console.log("res ", res);
+            if (res.data?.id_token) {
+              localStorage.setItem("authToken", res.data?.id_token);
+              const token = localStorage.getItem("authToken");
+              console.log("authToken ", token);
+              Dispatch(setAuthToken(token));
+              console.log("Token ", res?.data.id_token);
+                // setTimeout(() => {
+                // sendCommandtoHub({
+                //   ActionToPerform: "OfflineAuthenticate",
+                //   authToken: res.data?.id_token,boo
+                // });
+                // sendCommandtoHub({
+                //   ActionToPerform: "IsBoothInDailyMode",
+                //   authToken: res.data?.id_token,
+                // });
+                // sendCommandtoHub({
+                //   ActionToPerform: "StoreZonesetting",
+                //   authToken: res.data?.id_token,
+                // });
+              // }, 10000);
+
+              authenticateDetails(res, res.data.id_token);
+            } else {
+              toast.error("Email or password is wrong.", {
+                position: "top-center",
+              });
               sendLog({
                 LogMsg: `Booth Login failed. BoothEmail: ${email} `,
                 LogType: "error",
               });
+              setAutoLogin(false);
+              clearLogin();
             }
-          } else {
+          })
+
+          .catch((res) => {
+            //LOG
             toast.error("Email or password is wrong.", {
               position: "top-center",
             });
+            clearLogin();
             sendLog({
               LogMsg: `Booth Login failed. BoothEmail: ${email} `,
               LogType: "error",
             });
             setAutoLogin(false);
-            clearLogin();
-          }
-        })
-
-        .catch((res) => {
-          //LOG
-          toast.error("Email or password is wrong.", {
-            position: "top-center",
+          })
+          .finally(() => {
+            setLocalLoading(false);
+            setAutoLogin(false);
           });
-          clearLogin();
-          sendLog({
-            LogMsg: `Booth Login failed. BoothEmail: ${email} `,
-            LogType: "error",
-          });
-          setAutoLogin(false);
-        })
-        .finally(() => {
-          setLocalLoading(false);
-          setAutoLogin(false);
-        });
+      }
     },
-    [email, password, Dispatch, clearLogin, sendLog]
+    [email,offlineMode, password, Dispatch, clearLogin, sendLog,authToken]
   );
+
+  useEffect(() => {
+    console.log('token ',authToken)
+    if (!authToken) return;
+    sendCommandtoHub({
+      ActionToPerform: "OfflineAuthenticate",
+      authToken: authToken,
+    });
+    // sendCommandtoHub({
+    //   ActionToPerform: "IsBoothInDailyMode",
+    //   authToken: authToken,
+    // });
+    // sendCommandtoHub({
+    //   ActionToPerform: "StoreZonesetting",
+    //   authToken: authToken,
+    // });
+  }, [authToken,handleSubmit, sendCommandtoHub,offlineMode]);
+
   useEffect(() => {
     //get booth data
     let fetchData = async () => {
       if (boothAuth.boothUserId) {
+        let boothDetailsData;
+        let check_booth_mode;
+
         Dispatch(setLoading(true));
         setLocalLoading(true);
         try {
-          const boothDetails = await getBoothDetails(boothAuth.boothUserId);
-          const boothDetailsData = boothDetails.data;
-          Dispatch(
-            setBoothInfo({
-              boothName: boothDetailsData.name,
-              boothId: boothDetailsData.id,
-            })
-          );
-          localStorage.setItem("BoothId", boothDetailsData.id);
-          localStorage.setItem("BoothName", boothDetailsData.name);
-          const check_booth_mode = await checkBoothMode();
+          console.log(offlineMode);
+
+          if (offlineMode === "idle") return;
+
+          if (offlineMode === "offline") {
+            console.log("offline booth details ", offlineModeData?.boothDetails);
+            boothDetailsData = offlineModeData.boothDetails;
+          } else if (offlineMode === "online") {
+            const boothDetails = await getBoothDetails(boothAuth?.boothUserId);
+            sendCommandtoHub({
+              ActionToPerform: "StoreBoothByUserId",
+              JsonInput: JSON.stringify( boothDetails.data)
+            });
+
+            boothDetailsData = boothDetails?.data;
+          }
+          console.log('boothdetailsdata',boothDetailsData);
+          if (boothDetailsData) {
+            Dispatch(
+              setBoothInfo({
+                boothName: boothDetailsData?.name,
+                boothId: boothDetailsData?.id,
+              })
+            );
+            localStorage.setItem("BoothId", boothDetailsData?.id);
+            localStorage.setItem("BoothName", boothDetailsData?.name);
+          }
+
+          if (offlineMode == "offline") {
+            console.log(
+              "offline isDailyModeResult details ",
+              offlineModeData.isDailyModeResult
+            );
+            check_booth_mode = {
+              data: offlineModeData.isDailyModeResult,
+            };
+          } else if (offlineMode == "online") {
+            check_booth_mode = await checkBoothMode();
+            if (!check_booth_mode?.data || check_booth_mode?.data?.length==0) {
+              const input = {
+                isDaily:false,isClub:false
+              }
+              sendCommandtoHub({
+                ActionToPerform: "IsBoothInDailyMode",
+                JsonInput: input
+              });
+            }
+            sendCommandtoHub({
+              ActionToPerform: "IsBoothInDailyMode",
+              JsonInput: JSON.stringify(check_booth_mode?.data)
+            });
+          }
+
+          console.log("boothmode***** ", offlineModeData);
 
           Dispatch(
             setBoothMode({
@@ -189,11 +304,11 @@ const BoothLogin = ({ sendLog,handleBoothLoginCommand }) => {
             : check_booth_mode?.data?.isClub
             ? "club"
             : "normal";
-            const prevMode =   localStorage.getItem("BoothMode")
-            if(prevMode && prevMode !==mode){
-              clearLocalStorageData()
-              window.location = "/"
-            }
+          const prevMode = localStorage.getItem("BoothMode");
+          if (prevMode && prevMode !== mode) {
+            clearLocalStorageData();
+            window.location = "/";
+          }
           localStorage.setItem("BoothMode", mode);
           // CHANGE PAGE
           const viewerStepInfoJson = localStorage.getItem("viewerStepInfo");
@@ -204,13 +319,13 @@ const BoothLogin = ({ sendLog,handleBoothLoginCommand }) => {
           setAutoLogin(false);
           Dispatch(setLoading(false));
           console.log("-------------------");
-          handleBoothLoginCommand(boothDetailsData.id,boothDetailsData.name)
+          handleBoothLoginCommand(boothDetailsData?.id, boothDetailsData?.name);
           sendLog({
-            LogMsg: `Booth data fetched.  BoothId: ${boothDetailsData.id} `,
+            LogMsg: `Booth data fetched.  BoothId: ${boothDetailsData?.id} `,
             LogType: "success",
             BoothMode: mode,
-            BoothId:boothDetailsData.id,
-            BoothName:boothDetailsData.name
+            BoothId: boothDetailsData?.id,
+            BoothName: boothDetailsData?.name,
           });
         } catch (error) {
           console.log("er", error);
@@ -227,10 +342,18 @@ const BoothLogin = ({ sendLog,handleBoothLoginCommand }) => {
     };
     fetchData();
     return () => (fetchData = null);
-  }, [boothAuth.boothUserId, Dispatch, clearLogin, sendLog,handleBoothLoginCommand]);
+  }, [
+    boothAuth.boothUserId,
+    Dispatch,
+    clearLogin,
+    sendLog,
+    handleBoothLoginCommand,
+    offlineMode,
+  ]);
 
   //auto login
   useEffect(() => {
+    if (offlineMode == "idle") return;
     if ((localToken && loggedTryToken !== "failed") || autoLoginTried) return;
     if (isAutoLogin) {
       Dispatch(setLoading(true));
@@ -263,6 +386,7 @@ const BoothLogin = ({ sendLog,handleBoothLoginCommand }) => {
     loggedTryToken,
     localToken,
     handleEmailChange,
+    offlineMode,
   ]);
   return (
     <div>

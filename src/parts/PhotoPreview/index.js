@@ -7,7 +7,11 @@ import { motion } from "framer-motion";
 import RetakePhoto from "./RetakePhoto";
 import Footer from "components/footer/footer";
 import { useDispatch, useSelector } from "react-redux";
-import { setPhotoPage, setPhotoInfo } from "state/reducers/photosInfo";
+import {
+  setPhotoPage,
+  setPhotoInfo,
+  setIsFavoriteOpen,
+} from "state/reducers/photosInfo";
 import SMSDialogue from "./SMSDialogue";
 import Header from "components/header/header";
 import FavoriteHeadShots from "../PhotoPreview/FavoriteHeadshots";
@@ -34,6 +38,9 @@ export default function PhotoPreview({ onSubmit, sendLog }) {
     ActivePosition: 0,
     // PhotoPresetId:null
   });
+
+  console.log("modalOption ", photoInfo.modalOption);
+  console.log("showFavoriteDialog ", showFavoriteDialog);
 
   useEffect(() => {
     let connectSignalR = () => {
@@ -93,7 +100,6 @@ export default function PhotoPreview({ onSubmit, sendLog }) {
           ...hubCommendRef.current,
           ActionToPerform: "SaveSessionCompletedInfo",
         });
-
       });
       setSMSModal(true);
     }

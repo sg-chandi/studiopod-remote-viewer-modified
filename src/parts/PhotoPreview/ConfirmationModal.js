@@ -2,7 +2,7 @@ import React from "react";
 import Button from "@mui/material/Button";
 import { useDispatch, useSelector } from "react-redux";
 import { motion } from "framer-motion";
-import { photoInfoReducer, setPhotoInfo } from "state/reducers/photosInfo";
+import { photoInfoReducer, setIsFavoriteOpen, setPhotoInfo } from "state/reducers/photosInfo";
 import { setIsFavoriteOpen } from "../../state/reducers/photosInfo";
 export default function ConfirmationModal({ onSubmit }) {
   const modalData = useSelector((state) => state.photosInfo.modalOption);

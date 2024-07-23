@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import AllImagesPreview from "./AllImagesPreview";
 import { useDispatch, useSelector } from "react-redux";
 import { RxCross1, RxCross2 } from "react-icons/rx";
@@ -11,6 +11,7 @@ const FavoriteHeadShots = ({ setShowFavoriteDialog, open }) => {
   const selectedStep = photoInfo.photoPageStep;
   const Dispatch = useDispatch();
 
+
   const handleClose = () => {
     setShowFavoriteDialog(false);
     Dispatch(setIsFavoriteOpen(false))
@@ -19,9 +20,6 @@ const FavoriteHeadShots = ({ setShowFavoriteDialog, open }) => {
     }))
   };
 
-  // const handleClose = () => {
-  //   Setopen(false);
-  // };
 
   return (
     // <div className="photoReview_section">

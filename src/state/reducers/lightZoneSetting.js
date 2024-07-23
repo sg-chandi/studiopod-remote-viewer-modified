@@ -17,7 +17,7 @@ export const zoneReducers = createSlice({
     setClientZone: (state, { payload }) => {
       state.clientZoneAvailable = payload.clientZoneAvailable;
       state.clientZone = payload.clientZone;
-      state.selectedZoneType = state.clientZone
+      state.selectedZoneType = state.clientZone;
     },
     setZoneType: (state, { payload }) => {
       state.selectedZoneType = payload;

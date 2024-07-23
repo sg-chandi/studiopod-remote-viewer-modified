@@ -12,7 +12,8 @@ import {
   BOOTH_ZONE_SETTINGS,
   DAILY_ORDER_CREATE,
   CLUB_BOOTH_URL,
-  CLIENT_ZONE_SETTINGS
+  CLIENT_ZONE_SETTINGS,
+  OFFLINE_DAILY,
 } from "./endpoints";
 
 export const authenticate = (email, password) => {
@@ -40,6 +41,7 @@ export const checkAvailableClients = (name, email) => {
 };
 
 export const corporateDefaultOrder = (payload) => {
+  console.log(payload);
   return HTTPRequest({ Method: "post", Url: DEFAULT_ORDER, Data: payload });
 };
 export const validateSession = (sessionId) => {
@@ -63,16 +65,25 @@ export const getBoothPreset = (boothId) => {
 };
 
 export const getBoothZoneSetting = (boothId) => {
-  return HTTPRequest({ Method: "get", Url: BOOTH_ZONE_SETTINGS  });
+  return HTTPRequest({ Method: "get", Url: BOOTH_ZONE_SETTINGS });
 };
 
 export const dailyOrderCreate = (payload) => {
-  return HTTPRequest({ Method: "post", Url: DAILY_ORDER_CREATE, Data: payload });
+  console.log(payload);
+  return HTTPRequest({
+    Method: "post",
+    Url: DAILY_ORDER_CREATE,
+    Data: payload,
+  });
 };
 
 export const clubOrderCreate = (payload) => {
   return HTTPRequest({ Method: "post", Url: CLUB_BOOTH_URL, Data: payload });
 };
 export const getClientLightZone = (clientId) => {
-  return HTTPRequest({ Method: "get", Url: CLIENT_ZONE_SETTINGS+clientId, });
+  return HTTPRequest({ Method: "get", Url: CLIENT_ZONE_SETTINGS + clientId });
+};
+
+export const getOfflineDaily = (payload) => {
+  return HTTPRequest({ Method: "post", Url: OFFLINE_DAILY, Data: payload });
 };

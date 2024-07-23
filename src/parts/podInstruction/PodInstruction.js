@@ -28,6 +28,7 @@ export default function PodInstruction({ onPageChange }) {
       onPageChange(6);
     }
   };
+  console.log('gridstep ',gridStep)
   useEffect(() => {
     setTimeout(() => {
       Dispatch(setGridStep(1));
@@ -118,8 +119,8 @@ export default function PodInstruction({ onPageChange }) {
               <div className="BxContent">
                 <img src={bx2} alt="Sit, Smile, Snap" />
                 <p>
-                  Sit, Smile,
-                  <br /> Snap
+                  Sit. Smile.
+                  <br /> Snap.
                 </p>
               </div>
             </>

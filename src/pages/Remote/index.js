@@ -19,13 +19,19 @@ import { setBoothError, setBoothActivity } from "state/reducers/boothInfo";
 import { setRemotePage } from "state/reducers/viewerSteps";
 import { setPhotoInfo } from "state/reducers/photosInfo";
 import { setSessionInfo, setIncreaseRetake } from "state/reducers/sessionInfo";
-import { updateSession, validateSession } from "service/remoteAPI";
+import {
+  getOfflineDaily,
+  updateSession,
+  validateSession,
+} from "service/remoteAPI";
 import CloseSession from "parts/modals/CloseSession";
 import InactivityModal from "parts/modals/inactivityModal";
 import { Backdrop } from "@mui/material";
 import CircularProgress from "@mui/material/CircularProgress";
 import NoOrderFound from "parts/NoOrderFound";
 import { useNavigate } from "react-router-dom";
+import offlineMode, { setOfflineMode, setOfflineModeData } from "state/reducers/offlineMode";
+import { setHubConnectionData } from "state/reducers/hubConnection";
 
 export default function Remote() {
   const remotePage = useSelector((state) => state.viewerStep.remotePage);
@@ -45,11 +51,17 @@ export default function Remote() {
     // PhotoPresetId:null
   });
   const navigate = useNavigate();
+  const boothActivity = useSelector((state) => state.booth.activity);
 
   const Dispatch = useDispatch();
   const [recentClickSequence, setRecentClickSequence] = useState(null);
   const [hubConnection, setHubConnection] = useState(null);
   const [hubConnected, setHubConnected] = useState(false);
+  const offlineMode = useSelector((state) => state.offline.offlineMode);
+  const offlineModeData = useSelector((state) => state.offline);
+  const [localDataPresent, setLocalDataPresent] = useState(false);
+  const authToken = useSelector((state) => state.offline.authToken);
+
 
   useEffect(() => {
     let connectSignalR = () => {
@@ -75,6 +87,28 @@ export default function Remote() {
     hubConnection.start().then(() => {
       console.log("Hub connected");
       setHubConnected(true);
+
+      // localStorage.clear()
+
+      hubConnection
+        .invoke("SendCommandToWinClient", {
+          ActionToPerform: "IsBoothOffline",
+        })
+        .catch((err) => console.error("ERROR" + err));
+
+      const isFirstOpen = localStorage.getItem("isFirstOpen");
+      if (!isFirstOpen) {
+        console.log(
+          "first time application open***********************************"
+        );
+        localStorage.setItem("firstTimeOpen", true);
+        localStorage.setItem("isOfflineClicked", false);
+      }
+
+      console.log("IsBoothOffline", {
+        ActionToPerform: "IsBoothOffline",
+      });
+
       hubConnection
         .invoke("SendCommandToWinClient", {
           ...hubCommendRef.current,
@@ -87,12 +121,6 @@ export default function Remote() {
       });
 
       hubConnection
-        .invoke("SendCommandToWebClient", hubCommendRef.current)
-        .catch((err) => console.error("ERROR" + err));
-      console.log("web", {
-        ...hubCommendRef.current,
-      });
-      hubConnection
         .invoke("SendCommandToWinClient", {
           ...hubCommendRef.current,
           ActionToPerform: "Stage1",
@@ -103,11 +131,90 @@ export default function Remote() {
         ActionToPerform: "Stage1",
       });
     });
-    hubConnection.on("send", (data) => {
-      console.log("hubData", data);
-    });
+
     hubConnection.on("onWebCommandReceived", (result) => {
-      // console.log(result.actionToPerform);
+      // console.log("getting data ", result);
+
+      if (
+        result.actionToPerform === "IsBoothOffline" &&
+        result.isOffline === true
+      ) {
+        console.log(offlineMode, " ", boothActivity.hasInterConnection);
+        console.log(
+          "offline changing*****************************************"
+        );
+        localStorage.setItem("mode", "offline");
+        Dispatch(
+          setOfflineMode({
+            offlineMode: "offline",
+          })
+        );
+        Dispatch(
+          setOfflineModeData({
+            boothDetails: result.jsonBoothDetailsResult,
+            isDailyModeResult: result.jsonIsDailyModeResult,
+            zonesettingResult: result.jsonZonesettingResult,
+          })
+        );
+        let isCorporateOrderPresent = localStorage.getItem(
+          "isCorporateOrderPresent"
+        );
+
+        let isOfflineClicked = localStorage.getItem("isOfflineClicked");
+        if (isOfflineClicked == "false") {
+          localStorage.setItem("isOfflineClicked", true);
+        }
+        isOfflineClicked = localStorage.getItem("isOfflineClicked");
+        console.log(
+          "isOfflineClicked ",
+          localStorage.getItem("isOfflineClicked")
+        );
+        console.log("isCorporateOrderPresent", isCorporateOrderPresent);
+        if (!isCorporateOrderPresent && isOfflineClicked == "true") {
+          console.log("CorporateOrder called*********");
+          // const token =JSON.parse(localStorage.getItem("authToken"));
+          console.log("authToken received", authToken);
+          getOfflineDaily({ AuthToken: authToken })
+            .then((res) => {
+              console.log(
+                "Corporateorder finish calling******************************"
+              );
+
+              hubConnection
+                .invoke("SendCommandToWinClient", {
+                  ActionToPerform: "CorporateOrder",
+                  JsonInput: JSON.stringify(res.data),
+                })
+                .catch((err) => console.error("ERROR" + err));
+            })
+            .catch((err) => console.log("corporateorder error ", err));
+        }
+      } else if (
+        result.actionToPerform === "IsBoothOffline" &&
+        result.isOffline === false
+      ) {
+        console.log("online changing");
+        localStorage.setItem("isOfflineClicked", false);
+        console.log(
+          "isOfflineClicked ",
+          localStorage.getItem("isOfflineClicked")
+        );
+        localStorage.setItem("mode", "online");
+        Dispatch(setOfflineMode({ offlineMode: "online" }));
+        localStorage.removeItem("isCorporateOrderPresent");
+      }
+
+      if (result.actionToPerform === "GetCorporateOrder") {
+        console.log("GetCorporateOrder", result);
+
+        localStorage.setItem("isCorporateOrderPresent", true);
+        console.log(result.jsonCorporateOrderResult);
+        localStorage.setItem(
+          "JsonCorporateOrderData",
+          JSON.stringify(result.jsonCorporateOrderResult)
+        );
+      }
+
       if (result.actionToPerform === "onError") {
         console.log("Command Error", result);
         Dispatch(
@@ -132,6 +239,7 @@ export default function Remote() {
         hubConnection
           .invoke("SendCommandToWinClient", comm)
           .catch((err) => console.error("ERROR" + err));
+        console.log("LogSave", comm);
       }
 
       if (result.actionToPerform === "OnImageClicked") {
@@ -176,6 +284,7 @@ export default function Remote() {
         hubConnection
           .invoke("SendCommandToWinClient", comm)
           .catch((err) => console.error("ERROR" + err));
+        console.log("LogSave", comm);
 
         const afterClickCommand = {
           ...hubCommendRef.current,
@@ -214,6 +323,7 @@ export default function Remote() {
         hubConnection
           .invoke("SendCommandToWinClient", comm)
           .catch((err) => console.error("ERROR" + err));
+        console.log("LogSave", comm);
         console.log("onCheckCamera");
         if (result.imageData === "True") {
           Dispatch(setBoothActivity({ isCameraConnected: true }));
@@ -276,6 +386,7 @@ export default function Remote() {
         .invoke("SendCommandToWinClient", _command)
         .catch((err) => console.error("ERROR" + err));
     },
+
     [hubConnection, hubConnected]
   );
 
@@ -430,6 +541,7 @@ export default function Remote() {
     const isRetaking = photoInfo.isRetaking;
     let _sequence = sequence;
     if (isRetaking) {
+      console.log('retaking.........................')
       _sequence = parseInt(photoInfo.selectedPhoto);
       localStorage.removeItem("photoClicked");
     } else {
@@ -474,6 +586,8 @@ export default function Remote() {
   const _handleSubmitRef = useRef();
   const handleSubmit = () => {
     Dispatch(setRemotePage(12));
+    const idle = JSON.stringify('idle')
+    localStorage.setItem("mode", idle);
     handlePageChange(12);
     console.log("total photo clicked", sessionInfo.photoClicked);
     if (sessionInfo.photoClicked == 0) {
@@ -518,6 +632,9 @@ export default function Remote() {
     command.PhotoPresetId = null;
     command.Remote = 9;
     command.Viewer = 4;
+    command.UserEmail = userInfo.userEmail;
+    command.Name = userInfo.userName;
+    command.InviteId = sessionInfo.inviteInfo.inviteId;
     console.log("userInfo.phone", userInfo.phone);
     console.log("userInfo", userInfo);
     if (userInfo.phone != "") {
@@ -525,34 +642,67 @@ export default function Remote() {
     }
     command.customLightSettings = [selectedZone];
     console.log("saveSyncData", command);
-    validateSession(sessionInfo.inviteInfo.sessionId)
-      .then((res) => {
-        console.log("update1")
-        return updateSession(conducted_Session);
-      })
-      .then(() => {
-        hubConnection
-          .invoke("SendCommandToWinClient", command)
-          .catch((err) => console.error("ERROR" + err));
-        sendLog({
-          LogMsg: `Submitting session. SessionId:${sessionInfo.inviteInfo.sessionId}`,
-          LogType: "success",
-        });
-        Dispatch(setSessionInfo({ sessionSubmitting: true }));
-
-      })
-      .catch((er) => {
-        console.log("err", er);
-        sendLog({
-          LogMsg: `Submitting session error happens. SessionId:${sessionInfo.inviteInfo.sessionId}`,
-          LogType: "error",
-        });
-        Dispatch(setSessionInfo({ sessionSubmitting: true }));
+    if (offlineMode === "offline") {
+      hubConnection
+        .invoke("SendCommandToWinClient", command)
+        .catch((err) => console.error("ERROR" + err));
+      sendLog({
+        LogMsg: `Submitting session. SessionId:${sessionInfo.inviteInfo.sessionId}`,
+        LogType: "success",
       });
+      Dispatch(setSessionInfo({ sessionSubmitting: true }));
+    }
+    if (offlineMode === "online") {
+      validateSession(sessionInfo.inviteInfo.sessionId)
+        .then((res) => {
+          console.log("update1");
+          return updateSession(conducted_Session);
+        })
+        .then(() => {
+          hubConnection
+            .invoke("SendCommandToWinClient", command)
+            .catch((err) => console.error("ERROR" + err));
+          sendLog({
+            LogMsg: `Submitting session. SessionId:${sessionInfo.inviteInfo.sessionId}`,
+            LogType: "success",
+          });
+          Dispatch(setSessionInfo({ sessionSubmitting: true }));
+        })
+        .catch((er) => {
+          console.log("err", er);
+          sendLog({
+            LogMsg: `Submitting session error happens. SessionId:${sessionInfo.inviteInfo.sessionId}`,
+            LogType: "error",
+          });
+          Dispatch(setSessionInfo({ sessionSubmitting: true }));
+        });
+    }
   };
   useEffect(() => {
     _handleSubmitRef.current = handleSubmit;
   }, [handleSubmit]);
+
+  const sendCommandtoHub = useCallback(
+    (command) => {
+      console.log("hubConnected ", new Date().getTime(), hubConnected);
+      console.log("hubconnection", hubConnection);
+
+      if (!hubConnected) return;
+      try {
+        hubConnection
+          .invoke("SendCommandToWinClient", command)
+          .catch((err) =>
+            console.log(
+              "ERROR" + new Date()?.format("yyyy-mm-dd HH:MM:ss l") + err
+            )
+          );
+        console.log("command ", command);
+      } catch (error) {
+        console.log(error);
+      }
+    },
+    [hubConnection, hubConnected]
+  );
 
   const handleBoothLoginCommand = useCallback(
     (BoothId, BoothName) => {
@@ -564,6 +714,36 @@ export default function Remote() {
           BoothId: BoothId,
         },
       };
+      hubConnection
+        .invoke("SendCommandToWinClient", {
+          ActionToPerform: "OfflineAuthenticate",
+          authToken: localStorage.getItem("authToken"),
+        })
+        .catch((err) => console.error("ERROR" + err));
+      console.log("OfflineAuthenticate", {
+        authToken: localStorage.getItem("authToken"),
+        ActionToPerform: "OfflineAuthenticate",
+      });
+      // hubConnection
+      //   .invoke("SendCommandToWinClient", {
+      //     ActionToPerform: "IsBoothInDailyMode",
+      //     authToken:'test'/*localStorage.getItem("authToken")*/
+      //   })
+      //   .catch((err) => console.error("ERROR" + err));
+      // console.log("IsBoothInDailyMode", {
+      //   authToken:localStorage.getItem('authToken'),
+      //   ActionToPerform: "IsBoothInDailyMode",
+      // });
+      // hubConnection
+      //   .invoke("SendCommandToWinClient", {
+      //     ActionToPerform: "StoreZonesetting",
+      //     authToken:localStorage.getItem("authToken")
+      //   })
+      //   .catch((err) => console.error("ERROR" + err));
+      // console.log("StoreZonesetting", {
+      //   authToken:localStorage.getItem('authToken'),
+      //   ActionToPerform: "StoreZonesetting",
+      // });
       console.log("SaveBoothDetails", comm);
 
       hubConnection
@@ -665,11 +845,13 @@ export default function Remote() {
         onPresetFetched={onStartLiveView}
         sendLog={sendLog}
         onPageChange={handlePageChange}
+        sendCommandtoHub={sendCommandtoHub}
       >
         {remotePage === 1 && (
           <BoothLogin
             sendLog={sendLog}
             handleBoothLoginCommand={handleBoothLoginCommand}
+            sendCommandtoHub={sendCommandtoHub}
           />
         )}
         {remotePage === 100 && <LandingPage onPageChange={handlePageChange} />}
@@ -680,6 +862,7 @@ export default function Remote() {
             onPageChange={handlePageChange}
             onCheckCamera={checkCamera}
             sendLog={sendLog}
+            sendCommandtoHub={sendCommandtoHub}
           />
         )}
         {/* No order found */}

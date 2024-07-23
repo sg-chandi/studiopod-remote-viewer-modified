@@ -8,6 +8,7 @@ import {
   setPhotoInfo,
   setIsRetaking,
   setPhotoPage,
+  setIsFavoriteOpen,
 } from "state/reducers/photosInfo";
 import { setIsFavoriteOpen } from "../../state/reducers/photosInfo";
 

@@ -1,6 +1,6 @@
 import { Curve, UniOn } from "assets/images";
 import React, { Fragment, useEffect, useRef } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { usePhotoRender } from "helper/func";
 import { clearLocalStorageData } from "helper/func";
 
@@ -12,19 +12,21 @@ export default function ExitSessionPage() {
   const sessionInfo = useSelector((state) => state.sessionInfo);
   const picUrl = usePhotoRender(favoriteImage, voucher);
   const loadedTime = useRef(new Date());
+  const offlineMode = useSelector((state) => state.offline.offlineMode);
 
   useEffect(() => {
     if (!sessionInfo.sessionSubmitting) return;
-    const diffTime = Math.abs((new Date().getTime() - loadedTime.current.getTime()))
-    const remainTime = 7000 - diffTime
-    console.log("diffTime",remainTime);
-    if(remainTime>100){
+    const diffTime = Math.abs(
+      new Date().getTime() - loadedTime.current.getTime()
+    );
+    const remainTime = 7000 - diffTime;
+    console.log("diffTime", remainTime);
+    if (remainTime > 100) {
       setTimeout(() => {
         clearLocalStorageData();
         window.location = "/";
       }, remainTime);
-    }
-    else{
+    } else {
       clearLocalStorageData();
       window.location = "/";
     }
