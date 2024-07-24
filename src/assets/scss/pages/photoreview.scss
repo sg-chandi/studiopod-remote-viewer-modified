@@ -25,7 +25,7 @@
     .upper_part {
       flex: 1;
       background-color: $bg-white;
-      @include BorderRadiusDynamic(30px, 100%);
+      @include BorderRadiusDynamic(40px, 100%);
       padding: 25px;
       display: flex;
       flex-direction: column;
@@ -322,6 +322,7 @@
     font-weight: 400;
     width: 185px;
     height: 80px !important;
+    font-size: 1.1rem;
   }
 
   button.secondary {
@@ -329,6 +330,7 @@
     font-weight: 400;
     width: 185px;
     height: 80px !important;
+    font-size: 1.1rem;
   }
 }
 

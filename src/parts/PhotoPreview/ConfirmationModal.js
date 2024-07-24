@@ -40,9 +40,9 @@ export default function ConfirmationModal({ onSubmit }) {
           </>
         ) : modalData === "favoriteNew" ? (
           <>
-            This will be your photo
+            This will be your 
             <br />
-            that is retouched
+            retouched photo.
           </>
         ) : modalData === "favorite" ? (
           <>
