@@ -874,7 +874,7 @@
 }
 
 .sessionDialogue {
-  @include Dialogue(100vw, 100vh);
+  @include Dialogue(50vw, 50vh);
 
   .MuiDialog-paper.MuiDialog-paperScrollPaper {
     overflow: hidden;
@@ -884,10 +884,15 @@
     background-size: cover;
     padding: 35px 50px;
 
+    @media (min-width: 1099px) {
+      width: 650px;
+      max-width: 650px;
+    }
     @media (min-width: 1599px) {
       width: 750px;
       max-width: 750px;
     }
+
 
     @media (min-width: 1799px) {
       width: 850px;
@@ -973,7 +978,7 @@
         top: 17px;
         right: 18px;
 
-        @media (min-width: 1599px) {
+        @media (min-width: 1099px) {
           width: 65px;
         }
 
