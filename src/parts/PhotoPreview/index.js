@@ -100,11 +100,9 @@ export default function PhotoPreview({ onSubmit, sendLog }) {
   };
 
   const handleSubmitSession = () => {
-    console.log(sessionInfo.isUnlimited);
-    console.log(boothInfo.isDailyMode);
     if (
       (boothInfo.isDailyMode && sessionInfo.isUnlimited) ||
-      sessionInfo.touchupServicePrice
+      sessionInfo.touchupServicePrice || sessionInfo.isUnlimitedStudio || sessionInfo.isUnlimitedRetouching
     ) {
       setShowFavoriteDialog(true);
       if (!photoInfo.isFavouriteOpen) {
@@ -181,13 +179,11 @@ export default function PhotoPreview({ onSubmit, sendLog }) {
         </motion.div>
 
         <div
-          className={`right_part ${
-            selectedStep === 2 ? "bgwhite fadeIn-animation-1s" : ""
-          } ${
-            selectedStep === 3
+          className={`right_part ${selectedStep === 2 ? "bgwhite fadeIn-animation-1s" : ""
+            } ${selectedStep === 3
               ? "bg-transparent p-0 retakeConfirm_part fadeIn-animation-1s"
               : ""
-          }`}
+            }`}
         >
           {selectedStep === 2 || selectedStep === 4 ? (
             <ConfirmationModal onSubmit={handleSubmitModal} />

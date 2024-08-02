@@ -349,8 +349,9 @@ const SessionContext = ({
               retakeAllowed: retakeAllowed,
               clickAllowed: clickAllowed,
               selectedCorporateClientID: data.corporateClientDto.id,
-              isUnlimited:data.corporateClientDto.unlimited,
-              touchupServicePrice:data.corporateOrder.touchupServicePrice
+              isUnlimited:data.corporateClientDto?.unlimited,
+              touchupServicePrice:data.corporateOrder.touchupServicePrice,
+              isUnlimitedStudio:data?.corporateOrder?.isUnlimited
             })
           );
           sessionCorporateId = data.corporateClientDto.id;
