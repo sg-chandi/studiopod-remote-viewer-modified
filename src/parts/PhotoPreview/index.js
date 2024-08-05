@@ -102,7 +102,7 @@ export default function PhotoPreview({ onSubmit, sendLog }) {
   const handleSubmitSession = () => {
     if (
       (boothInfo.isDailyMode && sessionInfo.isUnlimited) ||
-      sessionInfo.touchupServicePrice || sessionInfo.isUnlimitedStudio || sessionInfo.isUnlimitedRetouching
+      sessionInfo.touchupServicePrice || (sessionInfo.isUnlimitedStudio && sessionInfo.isUnlimitedRetouching)
     ) {
       setShowFavoriteDialog(true);
       if (!photoInfo.isFavouriteOpen) {
