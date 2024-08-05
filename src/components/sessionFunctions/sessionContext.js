@@ -1,4 +1,4 @@
-import { useContext, createContext,useState,useRef, useEffect, useCallback } from "react";
+import { useContext, createContext, useState, useRef, useEffect, useCallback } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { toast } from "react-toastify";
 import {
@@ -37,7 +37,7 @@ import {
 import * as signalR from "@microsoft/signalr";
 import { SIGNAL_R_CONNECTION } from "service/endpoints";
 
-export const AppContext = createContext({ corporateDefaultOrder: () => {} });
+export const AppContext = createContext({ corporateDefaultOrder: () => { } });
 
 const SessionContext = ({
   children,
@@ -326,32 +326,29 @@ const SessionContext = ({
     validateSession(sessionInfo.inviteInfo.sessionId)
       .then((response) => {
         const data = response.data;
-        console.log( data.corporateClientDto.unlimited)
+        console.log(data.corporateClientDto.unlimited)
 
         let sessionCorporateId = null;
-        // console.log("client data",data);
         let retakeAllowed = data.corporateClientDto?.retakesAllowed;
         let clickAllowed = data.corporateClientDto?.photosAllowed;
         if (data.corporateClientDto) {
           const isDaily = boothInfo.isDailyMode;
-          // console.log("isDaily",isDaily);
           if (isDaily && data?.corporateClientDto?.dailyPhotosAllowed) {
             clickAllowed = data.corporateClientDto.dailyPhotosAllowed;
           }
           if (isDaily && data?.corporateClientDto?.dailyRetakesAllowed) {
             retakeAllowed = data.corporateClientDto.dailyRetakesAllowed;
           }
-          // console.log("retakeAllowed",retakeAllowed);
-          // console.log("clickAllowed",clickAllowed);
           console.log(data.corporateOrder);
           Dispatch(
             setSessionInfo({
               retakeAllowed: retakeAllowed,
               clickAllowed: clickAllowed,
               selectedCorporateClientID: data.corporateClientDto.id,
-              isUnlimited:data.corporateClientDto?.unlimited,
-              touchupServicePrice:data.corporateOrder.touchupServicePrice,
-              isUnlimitedStudio:data?.corporateOrder?.isUnlimited
+              isUnlimited: data.corporateClientDto?.unlimited,
+              touchupServicePrice: data.corporateOrder.touchupServicePrice,
+              isUnlimitedStudio: data?.corporateOrder?.isUnlimited,
+              isUnlimitedRetouching:data.unlimitedRetouching
             })
           );
           sessionCorporateId = data.corporateClientDto.id;
@@ -414,7 +411,7 @@ const SessionContext = ({
                   ...hubCommendRef.current,
                   ActionToPerform: "SaveSessionInitiatedInfo",
                 });
-        
+
               });
 
               if (sessionCorporateId != null) {
