@@ -21,6 +21,7 @@ import {
   setUserLoggedIn,
   resetSateForUser,
 } from "state/reducers/userInfoReducer";
+import UINPage from "./UINPage";
 // default mode
 
 export default function UserLogin({ onCheckCamera, onPageChange, sendLog }) {
@@ -33,12 +34,15 @@ export default function UserLogin({ onCheckCamera, onPageChange, sendLog }) {
   );
   const Dispatch = useDispatch();
   const { createDailyModeOrder } = useSessionContext();
-  const [showNamePage, setShoNamePage] = useState(true);
+  const [showNamePage, setShoNamePage] = useState("name");
   const [nameFocused, setNameFocused] = useState(false);
   const [loading, setLocalLoading] = useState(false);
   const [selectedCorporate, setSelectedCorporate] = useState(null);
   const submitName = () => {
-    setShoNamePage(false);
+    setShoNamePage("name");
+  };
+  const submitEmail = () => {
+    setShoNamePage("email");
   };
   const focusName = () => {
     setNameFocused(true);
@@ -60,7 +64,7 @@ export default function UserLogin({ onCheckCamera, onPageChange, sendLog }) {
       });
       localStorage.setItem("userEmail", email);
       localStorage.setItem("userName", name);
-      
+
       if (boothInfo.isDailyMode) {
         createDailyModeOrder(name, email);
       } else {
@@ -112,7 +116,7 @@ export default function UserLogin({ onCheckCamera, onPageChange, sendLog }) {
     setSelectedCorporate(client.id);
   };
   const handleSelectCorporateClient = async (corp) => {
-    if(!selectedCorporate){
+    if (!selectedCorporate) {
       Dispatch(setUserLoggedIn(true));
       Dispatch(
         setSessionInfo({
@@ -120,9 +124,9 @@ export default function UserLogin({ onCheckCamera, onPageChange, sendLog }) {
           selectedBoothID: corp.boothId,
         })
       );
-    }else{
-      console.log("selectedCorporate",selectedCorporate);
-      const found = availableCorporateInvites.find(item=>item.id ==selectedCorporate)
+    } else {
+      console.log("selectedCorporate", selectedCorporate);
+      const found = availableCorporateInvites.find(item => item.id == selectedCorporate)
       Dispatch(setUserLoggedIn(true));
       Dispatch(
         setSessionInfo({
@@ -131,7 +135,7 @@ export default function UserLogin({ onCheckCamera, onPageChange, sendLog }) {
         })
       );
     }
-    
+
   };
   return (
     <div className="name_page">
@@ -145,9 +149,7 @@ export default function UserLogin({ onCheckCamera, onPageChange, sendLog }) {
             <PageInformation />
           </motion.div>
         )}
-        {boothInfo.isClubMode ? (
-          <NumberKeyboard />
-        ) : showNamePage ? (
+        {showNamePage === "name" ? (
           <motion.div
             initial={{ y: 10 }}
             animate={{ y: 0 }}
@@ -160,15 +162,24 @@ export default function UserLogin({ onCheckCamera, onPageChange, sendLog }) {
               focusName={focusName}
             />
           </motion.div>
-        ) : (
+        ) : showNamePage === "email" ? (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
             <EmailPageComponent
               setContainer={nameFocused}
-              handleSubmit={handleLogin}
+              handleSubmit={boothInfo.isClubMode ? submitEmail : handleLogin}
               loading={loading}
             />
           </motion.div>
-        )}
+        ) :
+          (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+              <UINPage
+                setContainer={nameFocused}
+                handleSubmit={handleLogin}
+                loading={loading}
+              />
+            </motion.div>
+          )}
         <motion.img
           initial={{ y: -15 }}
           animate={{ y: 0 }}
@@ -235,9 +246,9 @@ export default function UserLogin({ onCheckCamera, onPageChange, sendLog }) {
           <div className="corporate_row mb-5">
             {availableCorporateInvites.map((item, index) => (
               <div
-                className={`box ${item.id === selectedCorporate?"select":''}`}
+                className={`box ${item.id === selectedCorporate ? "select" : ''}`}
                 key={item.id}
-                onClick={() =>handleCorporateSelect(item)}
+                onClick={() => handleCorporateSelect(item)}
               >
                 <div className="logo">
                   <img src={item.logoDB ? item.logoDB : ""} alt="holaImage" />
@@ -257,6 +268,6 @@ export default function UserLogin({ onCheckCamera, onPageChange, sendLog }) {
         </DialogActions>
       </Modal>
       {/* Modal */}
-    </div>
+    </div >
   );
 }
