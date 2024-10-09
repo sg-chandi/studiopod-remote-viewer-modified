@@ -67,7 +67,11 @@ export default function UserLogin({ onCheckCamera, onPageChange, sendLog }) {
 
       if (boothInfo.isDailyMode) {
         createDailyModeOrder(name, email);
-      } else {
+      }
+      else if (boothInfo.isClubMode) {
+        console.log("clubmode loginnnnnnnnnnnnn")
+      }
+      else {
         checkAvailableClients(name, email)
           .then((res) => {
             setAvailableCorporateInvites(res.data);
