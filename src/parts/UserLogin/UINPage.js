@@ -3,9 +3,10 @@ import Button from "@mui/material/Button";
 import { useDispatch } from "react-redux";
 import { setUserEmailAction } from "state/reducers/userInfoReducer";
 import { PiArrowCircleRightThin } from "react-icons/pi";
+import TextField from '@mui/material/TextField';
 
 export default function UINPage({ handleSubmit, setContainer, loading }) {
-    const [UIN, setUIN] = useState(0);
+    const [UIN, setUIN] = useState();
     const Dispatch = useDispatch();
     const changeUIN = (event) => {
         setUIN(event.target.value);
@@ -22,6 +23,8 @@ export default function UINPage({ handleSubmit, setContainer, loading }) {
         }
     };
 
+    console.log(UIN)
+
     return (
         <div className="lower_part">
             <div className={`Container ${setContainer ? "justify_Container" : ""}`}>
@@ -34,23 +37,32 @@ export default function UINPage({ handleSubmit, setContainer, loading }) {
                     </div>
                 </div>
                 <div className="content">
-                    <NumberInput
+                    <TextField
                         className="name_field"
+                        type="number"
                         placeholder="Enter your UIN Number"
                         value={UIN}
                         InputProps={{
+                            inputProps: {
+                                style: {
+                                    appearance: "textfield",
+                                    MozAppearance: "textfield", // for Firefox
+                                },
+                            },
                             style: {
                                 border: "none",
                             },
                         }}
                         onChange={(event) => changeUIN(event)}
                         onKeyDown={onEnter}
-                        type="number"
                         ref={UINRef}
                     />
                     <div className="buttonSec">
-                        <Button
+                    <Button
                             variant={!UIN || loading ? "outlined" : "contained"}
+                            className={
+                                !UIN || loading ? "filledBtn" : "filledBtn colorBtn"
+                            }
                             sx={{ display: "flex", justifyContent: "space-between" }}
                             endIcon={<PiArrowCircleRightThin />}
                             disabled={!UIN || loading}
