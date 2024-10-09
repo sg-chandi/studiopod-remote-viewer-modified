@@ -39,10 +39,10 @@ export default function UserLogin({ onCheckCamera, onPageChange, sendLog }) {
   const [loading, setLocalLoading] = useState(false);
   const [selectedCorporate, setSelectedCorporate] = useState(null);
   const submitName = () => {
-    setShoNamePage("name");
+    setShoNamePage("email");
   };
   const submitEmail = () => {
-    setShoNamePage("email");
+    setShoNamePage("uin");
   };
   const focusName = () => {
     setNameFocused(true);
