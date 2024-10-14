@@ -259,7 +259,7 @@ const SessionContext = ({
   };
 
   // FOR CLUB MODE ORDER FETCH
-  const createCLubModeOrder = (memberNumber) => {
+  const createCLubModeOrder = (memberNumber,userEmail,userName) => {
     const payload = {
       price: 0,
       units: 1,
@@ -272,6 +272,8 @@ const SessionContext = ({
       inviteeEmail: "",
       inviteeName: "",
       memberNumber: memberNumber,
+      userName:userName,
+      userEmail:userEmail
     };
     Dispatch(setLoading(true));
     clubOrderCreate(payload)
@@ -279,8 +281,8 @@ const SessionContext = ({
         const data = res.data;
         Dispatch(
           setUser({
-            userName: memberNumber,
-            userEmail: memberNumber,
+            userName: userName,
+            userEmail: userEmail,
             isLoggedIn: true,
           })
         );

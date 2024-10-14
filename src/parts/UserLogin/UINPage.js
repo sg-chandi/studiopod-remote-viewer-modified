@@ -1,7 +1,7 @@
 import React, { useState, useRef } from "react";
 import Button from "@mui/material/Button";
 import { useDispatch } from "react-redux";
-import { setUserEmailAction } from "state/reducers/userInfoReducer";
+import { setUserEmailAction, setUserUINAction } from "state/reducers/userInfoReducer";
 import { PiArrowCircleRightThin } from "react-icons/pi";
 import TextField from '@mui/material/TextField';
 
@@ -10,7 +10,7 @@ export default function UINPage({ handleSubmit, setContainer, loading }) {
     const Dispatch = useDispatch();
     const changeUIN = (event) => {
         setUIN(event.target.value);
-        Dispatch(setUserEmailAction(event.target.value));
+        Dispatch(setUserUINAction(event.target.value));
     };
     const UINRef = useRef(null)
     const submitForm = () => {

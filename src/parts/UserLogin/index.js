@@ -38,6 +38,7 @@ export default function UserLogin({ onCheckCamera, onPageChange, sendLog }) {
   const [nameFocused, setNameFocused] = useState(false);
   const [loading, setLocalLoading] = useState(false);
   const [selectedCorporate, setSelectedCorporate] = useState(null);
+  const { createCLubModeOrder } = useSessionContext();
   const submitName = () => {
     setShoNamePage("email");
   };
@@ -67,11 +68,11 @@ export default function UserLogin({ onCheckCamera, onPageChange, sendLog }) {
 
       if (boothInfo.isDailyMode) {
         createDailyModeOrder(name, email);
-      }
-      else if (boothInfo.isClubMode) {
-        console.log("clubmode loginnnnnnnnnnnnn")
-      }
-      else {
+      } else if (boothInfo.isClubMode) {
+        console.log("userData ", userData);
+        console.log("clubmode loginnnnnnnnnnnnn");
+        createCLubModeOrder(userData.userUIN, email, name);
+      } else {
         checkAvailableClients(name, email)
           .then((res) => {
             setAvailableCorporateInvites(res.data);
@@ -130,7 +131,9 @@ export default function UserLogin({ onCheckCamera, onPageChange, sendLog }) {
       );
     } else {
       console.log("selectedCorporate", selectedCorporate);
-      const found = availableCorporateInvites.find(item => item.id == selectedCorporate)
+      const found = availableCorporateInvites.find(
+        (item) => item.id == selectedCorporate
+      );
       Dispatch(setUserLoggedIn(true));
       Dispatch(
         setSessionInfo({
@@ -139,7 +142,6 @@ export default function UserLogin({ onCheckCamera, onPageChange, sendLog }) {
         })
       );
     }
-
   };
   return (
     <div className="name_page">
@@ -174,16 +176,15 @@ export default function UserLogin({ onCheckCamera, onPageChange, sendLog }) {
               loading={loading}
             />
           </motion.div>
-        ) :
-          (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-              <UINPage
-                setContainer={nameFocused}
-                handleSubmit={handleLogin}
-                loading={loading}
-              />
-            </motion.div>
-          )}
+        ) : (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+            <UINPage
+              setContainer={nameFocused}
+              handleSubmit={handleLogin}
+              loading={loading}
+            />
+          </motion.div>
+        )}
         <motion.img
           initial={{ y: -15 }}
           animate={{ y: 0 }}
@@ -250,7 +251,9 @@ export default function UserLogin({ onCheckCamera, onPageChange, sendLog }) {
           <div className="corporate_row mb-5">
             {availableCorporateInvites.map((item, index) => (
               <div
-                className={`box ${item.id === selectedCorporate ? "select" : ''}`}
+                className={`box ${
+                  item.id === selectedCorporate ? "select" : ""
+                }`}
                 key={item.id}
                 onClick={() => handleCorporateSelect(item)}
               >
@@ -272,6 +275,6 @@ export default function UserLogin({ onCheckCamera, onPageChange, sendLog }) {
         </DialogActions>
       </Modal>
       {/* Modal */}
-    </div >
+    </div>
   );
 }
