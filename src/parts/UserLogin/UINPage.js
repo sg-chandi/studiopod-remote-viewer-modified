@@ -23,8 +23,6 @@ export default function UINPage({ handleSubmit, setContainer, loading }) {
         }
     };
 
-    console.log(UIN)
-
     return (
         <div className="lower_part">
             <div className={`Container ${setContainer ? "justify_Container" : ""}`}>

@@ -6,8 +6,8 @@ const localGlobalConstants = {
 };
 
 const testingGlobalConstants = {
-  BASE_URL: "https://m05cdrbl-62275.inc1.devtunnels.ms",
-  // BASE_URL: "https://staging.thestudiopod.com",
+  // BASE_URL: "https://m05cdrbl-62275.inc1.devtunnels.ms",
+  BASE_URL: "https://staging.thestudiopod.com",
   BASE_URL_PAYMENT: "https://staging.thestudiopod.com",
   PAYMENT_KEY: "pk_test_UxB6ye7JNe146OdX6yQZarxj00ovJZUfQ4",
   BASE_MESSAGE: "Testing",
