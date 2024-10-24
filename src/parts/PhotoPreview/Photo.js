@@ -12,6 +12,15 @@ export default function Photo({ url, sequence }) {
   };
 
   const onSelect = () => {
+    if(photoInfo.isFavouriteOpen){
+      Dispatch(setPhotoInfo({
+        photoPageStep:2,
+        selectedPhoto: sequence,
+        openPhotoPreview: true,
+        modalOption: "favorite"
+      }))
+      return;
+    }
     Dispatch(setPhotoInfo({
       selectedPhoto: sequence,
       openPhotoPreview: true,

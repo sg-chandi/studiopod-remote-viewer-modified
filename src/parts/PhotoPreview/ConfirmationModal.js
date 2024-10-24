@@ -3,12 +3,19 @@ import Button from "@mui/material/Button";
 import { useDispatch, useSelector } from "react-redux";
 import { motion } from "framer-motion";
 import { photoInfoReducer, setPhotoInfo } from "state/reducers/photosInfo";
+import { setIsFavoriteOpen } from "../../state/reducers/photosInfo";
 export default function ConfirmationModal({ onSubmit }) {
   const modalData = useSelector((state) => state.photosInfo.modalOption);
   const photoInfo = useSelector((state) => state.photosInfo);
   const photoPageStep = useSelector((state) => state.photosInfo.photoPageStep);
   const Dispatch = useDispatch();
   const cancelRetake = () => {
+    if(photoInfo.isFavouriteOpen){
+      Dispatch(setIsFavoriteOpen(false))
+    }
+    Dispatch(setPhotoInfo({
+      modalOption: "retake"
+    }))
     Dispatch(
       setPhotoInfo({
         photoPageStep: 1,
@@ -33,9 +40,9 @@ export default function ConfirmationModal({ onSubmit }) {
           </>
         ) : modalData === "favoriteNew" ? (
           <>
-            This will be your photo
+            This will be your 
             <br />
-            that is retouched
+            retouched photo.
           </>
         ) : modalData === "favorite" ? (
           <>
@@ -50,7 +57,7 @@ export default function ConfirmationModal({ onSubmit }) {
           </>
         )}
       </h2>
-      <div className="button_grp">
+      <div className={photoInfo.modalOption === "favoriteNew" ? 'button_grp fav_btn_grp': 'button_grp'}>
         <Button className="secondary" onClick={cancelRetake}>
           {photoInfo.modalOption === "favoriteNew" ? "GO BACK" : "NO"}
         </Button>

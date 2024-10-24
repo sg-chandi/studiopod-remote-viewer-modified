@@ -25,7 +25,7 @@
     .upper_part {
       flex: 1;
       background-color: $bg-white;
-      @include BorderRadiusDynamic(25px, 100%);
+      @include BorderRadiusDynamic(40px, 100%);
       padding: 25px;
       display: flex;
       flex-direction: column;
@@ -75,7 +75,7 @@
     .down_part {
       height: 80px;
       cursor: pointer;
-      @include BorderRadiusDynamic(25px, 100%);
+      @include BorderRadiusDynamic(30px, 100%);
       background: #c4c4bc;
       display: flex;
       align-items: center;
@@ -313,6 +313,24 @@
       font-weight: 400;
       width: 135px;
     }
+  }
+}
+
+.button_grp.fav_btn_grp {
+  button.primary {
+    @include PrimaryButton(25px);
+    font-weight: 400;
+    width: 185px;
+    height: 80px !important;
+    font-size: 1.1rem;
+  }
+
+  button.secondary {
+    @include SecondaryButton(25px);
+    font-weight: 400;
+    width: 185px;
+    height: 80px !important;
+    font-size: 1.1rem;
   }
 }
 

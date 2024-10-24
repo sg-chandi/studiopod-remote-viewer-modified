@@ -13,7 +13,9 @@ import { bx1, bx2, bx3, bx4 } from "assets/images";
 
 export default function PodInstruction({ onPageChange }) {
   const { userName } = useSelector((state) => state.userInfo);
-  const hasCorporateLightSetting = useSelector(state=>state.lightZone.clientZoneAvailable)
+  const hasCorporateLightSetting = useSelector(
+    (state) => state.lightZone.clientZoneAvailable
+  );
   const Dispatch = useDispatch();
   const gridStep = useSelector((state) => state.steps.gridStep);
   const getAndSetGridStep = (step) => {
@@ -22,7 +24,7 @@ export default function PodInstruction({ onPageChange }) {
     } else {
       //next page
       //CHANGE PAGE
-      Dispatch(setRemotePage(hasCorporateLightSetting?61:4));
+      Dispatch(setRemotePage(hasCorporateLightSetting ? 61 : 4));
       onPageChange(6);
     }
   };
@@ -101,8 +103,9 @@ export default function PodInstruction({ onPageChange }) {
                 <div className="content">
                   <h2>Sit. Smile. Snap.</h2>
                   <h6>
-                    Get ready! Tap the screen to start the 5-second timer. Look
-                    up at the camera before it hits zero.
+                    Each time you want to take a photo, just tap the screen to
+                    start the 5- second timer. Look up at the camera before it
+                    hits zero. Press Continue to get started.
                   </h6>
                 </div>
               </div>
@@ -200,12 +203,14 @@ export default function PodInstruction({ onPageChange }) {
         actionBtnText={"continue"}
         disableActionBtn={false}
         onClickActionBtn={() => getAndSetGridStep(gridStep + 1)}
-        btnVariant={gridStep === 4 ? "contained" : "outlined"}
-        btnClassName={
-          gridStep === 4
-            ? "filledBtn colorBtn text-capitalize"
-            : "filledBtn text-capitalize"
-        }
+        btnVariant={"contained"}
+        // btnVariant={gridStep === 4 ? "contained" : "outlined"}
+        // btnClassName={
+        //   gridStep === 4
+        //     ? "filledBtn colorBtn text-capitalize"
+        //     : "filledBtn text-capitalize"
+        // }
+        btnClassName={"filledBtn colorBtn text-capitalize"}
       />
     </div>
   );

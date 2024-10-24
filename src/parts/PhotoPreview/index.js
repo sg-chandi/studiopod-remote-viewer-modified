@@ -14,6 +14,7 @@ import FavoriteHeadShots from "../PhotoPreview/FavoriteHeadshots";
 import { FormatQuoteRounded } from "@mui/icons-material";
 import * as signalR from "@microsoft/signalr";
 import { SIGNAL_R_CONNECTION } from "service/endpoints";
+import { setIsFavoriteOpen } from "../../state/reducers/photosInfo";
 
 export default function PhotoPreview({ onSubmit, sendLog }) {
   const [SMSModal, setSMSModal] = useState(false);
@@ -24,6 +25,7 @@ export default function PhotoPreview({ onSubmit, sendLog }) {
   const [disableCompleteSession, setDisableCompleteSession] = useState(false);
   const sessionInfo = useSelector((state) => state.sessionInfo);
   const [hubConnection, setHubConnection] = useState(null);
+  const boothInfo = useSelector((state) => state.booth.info);
   const hubCommendRef = useRef({
     ActionToPerform: "viewer",
     VoucherCode: "",
@@ -92,16 +94,20 @@ export default function PhotoPreview({ onSubmit, sendLog }) {
           ...hubCommendRef.current,
           ActionToPerform: "SaveSessionCompletedInfo",
         });
-
       });
       setSMSModal(true);
     }
   };
 
   const handleSubmitSession = () => {
-    console.log(sessionInfo.isUnlimited)
-    if(sessionInfo.isUnlimited){
+    if (
+      (boothInfo.isDailyMode && sessionInfo.isUnlimited) ||
+      sessionInfo.touchupServicePrice || sessionInfo.isUnlimitedRetouching
+    ) {
       setShowFavoriteDialog(true);
+      if (!photoInfo.isFavouriteOpen) {
+        Dispatch(setIsFavoriteOpen(true));
+      }
       return;
     }
     Dispatch(setPhotoPage(3));
@@ -122,19 +128,22 @@ export default function PhotoPreview({ onSubmit, sendLog }) {
   };
 
   useEffect(() => {
-    if (
-      photoInfo.modalOption === "retake" ||
-      photoInfo.modalOption === "favorite"
-    ) {
-      setShowFavoriteDialog(false);
-    }
-
     if (photoInfo.photoPageStep !== 1) {
       setDisableCompleteSession(true);
     } else {
       setDisableCompleteSession(false);
     }
   }, [photoInfo]);
+
+  useEffect(() => {
+    if (
+      photoInfo.modalOption == "retake" ||
+      photoInfo.modalOption == "favorite"
+    ) {
+      console.log(photoInfo.modalOption);
+      setShowFavoriteDialog(false);
+    }
+  }, [photoInfo.modalOption]);
 
   return (
     <>
@@ -170,13 +179,11 @@ export default function PhotoPreview({ onSubmit, sendLog }) {
         </motion.div>
 
         <div
-          className={`right_part ${
-            selectedStep === 2 ? "bgwhite fadeIn-animation-1s" : ""
-          } ${
-            selectedStep === 3
+          className={`right_part ${selectedStep === 2 ? "bgwhite fadeIn-animation-1s" : ""
+            } ${selectedStep === 3
               ? "bg-transparent p-0 retakeConfirm_part fadeIn-animation-1s"
               : ""
-          }`}
+            }`}
         >
           {selectedStep === 2 || selectedStep === 4 ? (
             <ConfirmationModal onSubmit={handleSubmitModal} />

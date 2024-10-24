@@ -16,34 +16,37 @@ const initialState = {
     userEmail: null,
     corporateClientId: null,
   },
-  initiatedSession:{
+  initiatedSession: {
     id: null,
     name: null,
-    coupon:null,
+    coupon: null,
     inviteSent: null,
     inviteAccepted: null,
     sessionCompleted: null,
     status: null,
     boothId: null,
-    userId:null,
+    userId: null,
     corporateOrderId: null,
     retakeAllowed: null,
     clickAllowed: null,
-    isUnlimited:null,
+    isUnlimited: null,
+    isUnlimitedStudio: null,
+    isUnlimitedRetouching: null,
+    touchupServicePrice: null,
   },
-  presetAvailable:{},
-  presetActionID:null,
-  photoClicked:0,
-  photoRetake:0,
+  presetAvailable: {},
+  presetActionID: null,
+  photoClicked: 0,
+  photoRetake: 0,
 
-  currentImageSequence:0,
-  sessionStartTime:null,
+  currentImageSequence: 0,
+  sessionStartTime: null,
   sessionStatus: null,
   sessionFetched: false,
   orderFetched: false,
-  hasError:false,
-  isValid:true,
-  sessionSubmitting:false
+  hasError: false,
+  isValid: true,
+  sessionSubmitting: false
 };
 
 export const sessionInfo = createSlice({
@@ -57,7 +60,7 @@ export const sessionInfo = createSlice({
       };
     },
     setIncreaseRetake: (state, { payload }) => {
-      state.photoRetake = state.photoRetake +1;
+      state.photoRetake = state.photoRetake + 1;
     },
     setSessionInviteInfo: (state, { payload }) => {
       state.inviteInfo = payload;

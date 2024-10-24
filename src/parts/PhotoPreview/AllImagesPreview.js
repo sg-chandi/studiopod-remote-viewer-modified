@@ -38,6 +38,8 @@ export default function AllImagesPreview() {
     return allImages
   }, [photoAllowed, photoClicked])
 
+  console.log(sessionInfo)
+
 
   return (
     <motion.div

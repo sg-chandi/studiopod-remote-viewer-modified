@@ -1,16 +1,22 @@
 import React from "react";
 import AllImagesPreview from "./AllImagesPreview";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { RxCross1, RxCross2 } from "react-icons/rx";
 import { Curve } from "../../assets/images";
 import { Dialog, DialogContent } from "@mui/material";
+import { setIsFavoriteOpen, setPhotoInfo } from "../../state/reducers/photosInfo";
 
 const FavoriteHeadShots = ({ setShowFavoriteDialog, open }) => {
   const photoInfo = useSelector((state) => state.photosInfo);
   const selectedStep = photoInfo.photoPageStep;
+  const Dispatch = useDispatch();
 
   const handleClose = () => {
     setShowFavoriteDialog(false);
+    Dispatch(setIsFavoriteOpen(false))
+    Dispatch(setPhotoInfo({
+      modalOption: "retake"
+    }))
   };
 
   // const handleClose = () => {
